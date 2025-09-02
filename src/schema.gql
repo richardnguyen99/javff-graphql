@@ -1,0 +1,52 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Series {
+  id: ID!
+  name: String!
+  videos: [Video!]
+}
+
+type Maker {
+  id: ID!
+  name: String!
+  videos: [Video!]
+}
+
+type Video {
+  id: ID!
+  code: String!
+  title: String!
+  coverImage: String
+  releaseDate: String
+  actresses: [Actress!]
+  series: Series
+  maker: Maker
+}
+
+type Actress {
+  id: ID!
+  name: String!
+  birthdate: String
+  profileImage: String
+  videos: [Video!]
+}
+
+type Query {
+  actresses: [Actress!]!
+  actress(id: Int!): Actress
+  videos: [Video!]!
+  video(id: Int!): Video
+  seriesList: [Series!]!
+  series(id: Int!): Series
+  makers: [Maker!]!
+  maker(id: Int!): Maker
+}
+
+type Mutation {
+  createActress(name: String!, birthdate: String, profileImage: String): Actress!
+  createVideo(code: String!, title: String!, coverImage: String, releaseDate: String): Video!
+  createSeries(name: String!): Series!
+  createMaker(name: String!): Maker!
+}
