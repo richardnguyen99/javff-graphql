@@ -14,6 +14,7 @@ import { DatabaseConfigService } from "./config/database.config";
       isGlobal: true,
       envFilePath: ".env",
     }),
+
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -22,6 +23,7 @@ import { DatabaseConfigService } from "./config/database.config";
       },
       inject: [ConfigService],
     }),
+
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [ConfigModule],
@@ -31,8 +33,10 @@ import { DatabaseConfigService } from "./config/database.config";
         path: configService.get<string>("GRAPHQL_PATH", "/graphql/v1"),
       }),
     }),
+
     V1Module,
   ],
+
   providers: [DatabaseConfigService],
 })
 export class AppModule {}

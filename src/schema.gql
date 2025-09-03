@@ -25,11 +25,25 @@ type Video {
   maker: Maker
 }
 
+type ImageURL {
+  small: String
+  large: String
+}
+
 type Actress {
   id: ID!
   name: String!
-  birthdate: String
-  profileImage: String
+  ruby: String
+  bust: String
+  cup: String
+  waist: String
+  hip: String
+  height: String
+  birthday: String
+  blood_type: String
+  hobby: String
+  prefectures: String
+  imageURL: ImageURL
   videos: [Video!]
 }
 
@@ -45,8 +59,45 @@ type Query {
 }
 
 type Mutation {
-  createActress(name: String!, birthdate: String, profileImage: String): Actress!
+  createActress(input: CreateActressInput!): Actress!
+  updateActress(id: Int!, input: UpdateActressInput!): Actress!
+  deleteActress(id: Int!): Boolean!
   createVideo(code: String!, title: String!, coverImage: String, releaseDate: String): Video!
   createSeries(name: String!): Series!
   createMaker(name: String!): Maker!
+}
+
+input CreateActressInput {
+  name: String!
+  ruby: String
+  bust: String
+  cup: String
+  waist: String
+  hip: String
+  height: String
+  birthday: String
+  blood_type: String
+  hobby: String
+  prefectures: String
+  imageURL: ImageURLInput
+}
+
+input ImageURLInput {
+  small: String
+  large: String
+}
+
+input UpdateActressInput {
+  name: String
+  ruby: String
+  bust: String
+  cup: String
+  waist: String
+  hip: String
+  height: String
+  birthday: String
+  blood_type: String
+  hobby: String
+  prefectures: String
+  imageURL: ImageURLInput
 }
