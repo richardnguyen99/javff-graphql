@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
 import { Actress } from "src/v1/actress/actress.entity";
+import { ActressImage } from "src/v1/actress/actress-image.entity";
 import { CreateActressInput } from "src/v1/actress/dto/create-actress.input";
 import { UpdateActressInput } from "src/v1/actress/dto/update-actress.input";
 
@@ -10,23 +11,37 @@ import { UpdateActressInput } from "src/v1/actress/dto/update-actress.input";
 export class ActressService {
   constructor(
     @InjectRepository(Actress)
-    private readonly actressRepository: Repository<Actress>
+    private readonly actressRepository: Repository<Actress>,
+    @InjectRepository(ActressImage)
+    private readonly actressImageRepository: Repository<ActressImage>
   ) {}
 
   findAll(): Promise<Actress[]> {
-    return this.actressRepository.find({ relations: ["videos"] });
+    return this.actressRepository.find({ relations: ["videos", "images"] });
   }
 
   findOne(id: number): Promise<Actress> {
     return this.actressRepository.findOne({
       where: { id },
-      relations: ["videos"],
+      relations: ["videos", "images"],
     });
   }
 
-  create(data: CreateActressInput): Promise<Actress> {
-    const actress = this.actressRepository.create(data);
-    return this.actressRepository.save(actress);
+  async create(data: CreateActressInput): Promise<Actress> {
+    const { images, ...actressData } = data;
+    const actress = this.actressRepository.create(actressData);
+    const savedActress = await this.actressRepository.save(actress);
+
+    if (images && images.length > 0) {
+      const imageEntities = images.map((img) =>
+        this.actressImageRepository.create({ ...img, actress: savedActress })
+      );
+
+      await this.actressImageRepository.save(imageEntities);
+      savedActress.images = imageEntities;
+    }
+
+    return savedActress;
   }
 
   update(id: number, data: UpdateActressInput): Promise<Actress> {

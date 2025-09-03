@@ -2,6 +2,13 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type ActressImage {
+  id: ID!
+  imageUrl: String!
+  attribute: String!
+  actress: Actress!
+}
+
 type Series {
   id: ID!
   name: String!
@@ -25,11 +32,6 @@ type Video {
   maker: Maker
 }
 
-type ImageURL {
-  small: String
-  large: String
-}
-
 type Actress {
   id: ID!
   name: String!
@@ -43,8 +45,11 @@ type Actress {
   blood_type: String
   hobby: String
   prefectures: String
-  imageURL: ImageURL
+  images: [ActressImage!]
   videos: [Video!]
+
+  """Romanized version of the Japanese name (DeepL)"""
+  romajiName: String
 }
 
 type Query {
@@ -79,12 +84,12 @@ input CreateActressInput {
   blood_type: String
   hobby: String
   prefectures: String
-  imageURL: ImageURLInput
+  images: [CreateActressImageInput!]
 }
 
-input ImageURLInput {
-  small: String
-  large: String
+input CreateActressImageInput {
+  imageUrl: String!
+  attribute: String!
 }
 
 input UpdateActressInput {
@@ -99,5 +104,5 @@ input UpdateActressInput {
   blood_type: String
   hobby: String
   prefectures: String
-  imageURL: ImageURLInput
+  images: [CreateActressImageInput!]
 }

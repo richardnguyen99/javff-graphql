@@ -1,13 +1,5 @@
 import { InputType, Field } from "@nestjs/graphql";
-
-@InputType()
-export class ImageURLInput {
-  @Field({ nullable: true })
-  small?: string;
-
-  @Field({ nullable: true })
-  large?: string;
-}
+import { CreateActressImageInput } from "./create-actress-image.input";
 
 @InputType()
 export class CreateActressInput {
@@ -44,6 +36,6 @@ export class CreateActressInput {
   @Field({ nullable: true })
   prefectures?: string;
 
-  @Field(() => ImageURLInput, { nullable: true })
-  imageURL?: ImageURLInput;
+  @Field(() => [CreateActressImageInput], { nullable: true })
+  images?: CreateActressImageInput[];
 }

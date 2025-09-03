@@ -1,4 +1,13 @@
-import { Resolver, Query, Args, Mutation, Int } from "@nestjs/graphql";
+import {
+  Resolver,
+  Query,
+  Args,
+  Mutation,
+  Int,
+  ResolveField,
+  Parent,
+} from "@nestjs/graphql";
+import translate from "translate";
 
 import { Actress } from "src/v1/actress/actress.entity";
 import { ActressService } from "src/v1/actress/actress.service";
@@ -35,5 +44,25 @@ export class ActressResolver {
   @Mutation(() => Boolean)
   deleteActress(@Args("id", { type: () => Int }) id: number) {
     return this.actressService.delete(id);
+  }
+
+  @ResolveField(() => String, {
+    nullable: true,
+    description: "Romanized version of the Japanese name (DeepL)",
+  })
+  async romajiName(@Parent() actress: Actress): Promise<string | null> {
+    if (!actress.name) return null;
+
+    translate.engine = "deepl";
+    translate.key = process.env.DEEPL_KEY;
+
+    try {
+      const result = await translate(actress.name, { from: "ja", to: "en" });
+
+      return result;
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
   }
 }
