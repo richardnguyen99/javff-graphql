@@ -7,6 +7,12 @@ export class CreateActressInput {
   name: string;
 
   @Field({ nullable: true })
+  dmmId?: string;
+
+  @Field({ nullable: true })
+  displayName?: string;
+
+  @Field({ nullable: true })
   ruby?: string;
 
   @Field({ nullable: true })
@@ -28,7 +34,7 @@ export class CreateActressInput {
   birthday?: string;
 
   @Field({ nullable: true })
-  blood_type?: string;
+  bloodType?: string;
 
   @Field({ nullable: true })
   hobby?: string;

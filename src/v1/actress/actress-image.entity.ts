@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from "typeorm";
 import { Field, ID, ObjectType } from "@nestjs/graphql";
 
 import { Actress } from "./actress.entity";
@@ -12,15 +18,16 @@ export class ActressImage {
 
   @Field()
   @Column()
-  imageUrl: string;
+  url: string;
 
   @Field()
   @Column()
-  attribute: string; // e.g., "large", "small"
+  attribute: string; // e.g., "large", "small", "fallback"
 
   @Field(() => Actress)
   @ManyToOne(() => Actress, (actress) => actress.images, {
     onDelete: "CASCADE",
   })
+  @JoinColumn({ name: "actress_id" })
   actress: Actress;
 }

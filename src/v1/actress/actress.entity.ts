@@ -17,48 +17,56 @@ export class Actress {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field()
+  @Field(() => String)
   @Column({ unique: true })
   name: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: "dmm_id" })
+  dmmId?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true, name: "display_name" })
+  displayName?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true, name: "ruby" })
   ruby?: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: "bust" })
   bust?: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: "cup" })
   cup?: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: "waist" })
   waist?: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: "hip" })
   hip?: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: "height" })
   height?: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: "birthday" })
   birthday?: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
-  blood_type?: string;
+  @Column({ nullable: true, name: "blood_type" })
+  bloodType?: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: "hobby" })
   hobby?: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: "prefectures" })
   prefectures?: string;
 
   @Field(() => [ActressImage], { nullable: true })

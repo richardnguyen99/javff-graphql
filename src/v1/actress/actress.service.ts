@@ -27,6 +27,24 @@ export class ActressService {
     });
   }
 
+  findByName(name: string): Promise<Actress[]> {
+    return this.actressRepository
+      .createQueryBuilder("actress")
+      .leftJoinAndSelect("actress.images", "images")
+      .leftJoinAndSelect("actress.videos", "videos")
+      .where("actress.name ILIKE :name", { name: `%${name}%` })
+      .orWhere("actress.displayName ILIKE :name", { name: `%${name}%` })
+      .orWhere("actress.ruby ILIKE :name", { name: `%${name}%` })
+      .getMany();
+  }
+
+  findByDmmId(dmmId: string): Promise<Actress> {
+    return this.actressRepository.findOne({
+      where: { dmmId },
+      relations: ["videos", "images"],
+    });
+  }
+
   async create(data: CreateActressInput): Promise<Actress> {
     const { images, ...actressData } = data;
     const actress = this.actressRepository.create(actressData);

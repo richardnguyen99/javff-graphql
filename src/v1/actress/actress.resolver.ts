@@ -1,13 +1,4 @@
-import {
-  Resolver,
-  Query,
-  Args,
-  Mutation,
-  Int,
-  ResolveField,
-  Parent,
-} from "@nestjs/graphql";
-import translate from "translate";
+import { Resolver, Query, Args, Mutation, Int } from "@nestjs/graphql";
 
 import { Actress } from "src/v1/actress/actress.entity";
 import { ActressService } from "src/v1/actress/actress.service";
@@ -28,6 +19,16 @@ export class ActressResolver {
     return this.actressService.findOne(id);
   }
 
+  @Query(() => [Actress])
+  async searchActressesByName(@Args("name") name: string) {
+    return this.actressService.findByName(name);
+  }
+
+  @Query(() => Actress, { nullable: true })
+  async actressByDmmId(@Args("dmmId") dmmId: string) {
+    return this.actressService.findByDmmId(dmmId);
+  }
+
   @Mutation(() => Actress)
   createActress(@Args("input") input: CreateActressInput) {
     return this.actressService.create(input);
@@ -44,25 +45,5 @@ export class ActressResolver {
   @Mutation(() => Boolean)
   deleteActress(@Args("id", { type: () => Int }) id: number) {
     return this.actressService.delete(id);
-  }
-
-  @ResolveField(() => String, {
-    nullable: true,
-    description: "Romanized version of the Japanese name (DeepL)",
-  })
-  async romajiName(@Parent() actress: Actress): Promise<string | null> {
-    if (!actress.name) return null;
-
-    translate.engine = "deepl";
-    translate.key = process.env.DEEPL_KEY;
-
-    try {
-      const result = await translate(actress.name, { from: "ja", to: "en" });
-
-      return result;
-    } catch (e) {
-      console.error(e);
-      return null;
-    }
   }
 }

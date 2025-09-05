@@ -4,7 +4,7 @@
 
 type ActressImage {
   id: ID!
-  imageUrl: String!
+  url: String!
   attribute: String!
   actress: Actress!
 }
@@ -35,6 +35,8 @@ type Video {
 type Actress {
   id: ID!
   name: String!
+  dmmId: String
+  displayName: String
   ruby: String
   bust: String
   cup: String
@@ -42,19 +44,18 @@ type Actress {
   hip: String
   height: String
   birthday: String
-  blood_type: String
+  bloodType: String
   hobby: String
   prefectures: String
   images: [ActressImage!]
   videos: [Video!]
-
-  """Romanized version of the Japanese name (DeepL)"""
-  romajiName: String
 }
 
 type Query {
   actresses: [Actress!]!
   actress(id: Int!): Actress
+  searchActressesByName(name: String!): [Actress!]!
+  actressByDmmId(dmmId: String!): Actress
   videos: [Video!]!
   video(id: Int!): Video
   seriesList: [Series!]!
@@ -74,6 +75,8 @@ type Mutation {
 
 input CreateActressInput {
   name: String!
+  dmmId: String
+  displayName: String
   ruby: String
   bust: String
   cup: String
@@ -81,19 +84,21 @@ input CreateActressInput {
   hip: String
   height: String
   birthday: String
-  blood_type: String
+  bloodType: String
   hobby: String
   prefectures: String
   images: [CreateActressImageInput!]
 }
 
 input CreateActressImageInput {
-  imageUrl: String!
+  url: String!
   attribute: String!
 }
 
 input UpdateActressInput {
   name: String
+  dmmId: String
+  displayName: String
   ruby: String
   bust: String
   cup: String
@@ -101,7 +106,7 @@ input UpdateActressInput {
   hip: String
   height: String
   birthday: String
-  blood_type: String
+  bloodType: String
   hobby: String
   prefectures: String
   images: [CreateActressImageInput!]
