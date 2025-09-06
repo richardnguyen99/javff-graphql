@@ -1,0 +1,179 @@
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { DeleteResult } from "typeorm";
+
+import { ActressService } from "src/v1/actress/actress.service";
+import { Actress } from "src/v1/actress/actress.entity";
+import { ActressImage } from "src/v1/actress/actress-image.entity";
+
+const mockActressRepository = () => ({
+  find: jest.fn(),
+  findOne: jest.fn(),
+  create: jest.fn(),
+  save: jest.fn(),
+  delete: jest.fn(),
+  createQueryBuilder: jest.fn(() => ({
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    orWhere: jest.fn().mockReturnThis(),
+    getMany: jest.fn(),
+  })),
+});
+
+const mockActressImageRepository = () => ({
+  create: jest.fn(),
+  save: jest.fn(),
+});
+
+describe("ActressService", () => {
+  let service: ActressService;
+  let actressRepository: jest.Mocked<Repository<Actress>>;
+  let actressImageRepository: jest.Mocked<Repository<ActressImage>>;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ActressService,
+        {
+          provide: getRepositoryToken(Actress),
+          useFactory: mockActressRepository,
+        },
+        {
+          provide: getRepositoryToken(ActressImage),
+          useFactory: mockActressImageRepository,
+        },
+      ],
+    }).compile();
+
+    service = module.get<ActressService>(ActressService);
+    actressRepository = module.get(getRepositoryToken(Actress));
+    actressImageRepository = module.get(getRepositoryToken(ActressImage));
+  });
+
+  it("should be defined", () => {
+    expect(service).toBeDefined();
+  });
+
+  it("findAll should return all actresses", async () => {
+    const result = [{ id: 1 } as Actress];
+    actressRepository.find.mockResolvedValue(result);
+
+    expect(await service.findAll()).toBe(result);
+    expect(actressRepository.find).toHaveBeenCalledWith({
+      relations: ["videos", "images"],
+    });
+  });
+
+  it("findOne should return an actress by id", async () => {
+    const result = { id: 1 } as Actress;
+    actressRepository.findOne.mockResolvedValue(result);
+
+    expect(await service.findOne(1)).toBe(result);
+    expect(actressRepository.findOne).toHaveBeenCalledWith({
+      where: { id: 1 },
+      relations: ["videos", "images"],
+    });
+  });
+
+  it("findByName should return actresses by name", async () => {
+    type QB = {
+      leftJoinAndSelect: jest.Mock;
+      where: jest.Mock;
+      orWhere: jest.Mock;
+      getMany: jest.Mock;
+    };
+
+    const getMany = jest.fn().mockResolvedValue([{ id: 1 } as Actress]);
+    const qb: QB = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      orWhere: jest.fn().mockReturnThis(),
+      getMany,
+    };
+
+    actressRepository.createQueryBuilder.mockReturnValue(qb as any);
+    const result = await service.findByName("test");
+
+    expect(result).toEqual([{ id: 1 }]);
+    expect(qb.where).toHaveBeenCalled();
+    expect(qb.orWhere).toHaveBeenCalled();
+    expect(getMany).toHaveBeenCalled();
+  });
+
+  it("findByDmmId should return an actress by dmmId", async () => {
+    const result = { id: 1 } as Actress;
+    actressRepository.findOne.mockResolvedValue(result);
+
+    expect(await service.findByDmmId("dmm123")).toBe(result);
+    expect(actressRepository.findOne).toHaveBeenCalledWith({
+      where: { dmmId: "dmm123" },
+      relations: ["videos", "images"],
+    });
+  });
+
+  it("create should create an actress and images", async () => {
+    const actressData = { id: 1, name: "test" } as Actress;
+    const images = [{ url: "img1", attribute: "main" }];
+    const savedActress = { id: 1, name: "test" } as Actress;
+
+    actressRepository.create.mockReturnValue(actressData);
+    actressRepository.save.mockResolvedValue(savedActress);
+
+    const imageEntities = images.map(
+      (img) =>
+        ({
+          id: 1,
+          url: img.url,
+          attribute: img.attribute,
+          actress: savedActress,
+        }) as ActressImage
+    );
+
+    actressImageRepository.create.mockImplementation(
+      (img) =>
+        ({
+          id: 1,
+          url: img.url,
+          attribute: img.attribute,
+          actress: savedActress,
+        }) as ActressImage
+    );
+    actressImageRepository.save.mockResolvedValue(imageEntities[0]);
+
+    const result = await service.create({ ...actressData, images });
+
+    expect(result).toEqual({ ...savedActress, images: imageEntities });
+    expect(actressRepository.create).toHaveBeenCalledWith({
+      id: 1,
+      name: "test",
+    });
+    expect(actressRepository.save).toHaveBeenCalledWith({
+      id: 1,
+      name: "test",
+    });
+    expect(actressImageRepository.create).toHaveBeenCalled();
+    expect(actressImageRepository.save).toHaveBeenCalledWith(imageEntities);
+  });
+
+  it("update should update an actress", async () => {
+    const data = { name: "updated" };
+    const result = { id: 1, ...data } as Actress;
+
+    actressRepository.save.mockResolvedValue(result);
+
+    expect(await service.update(1, data)).toBe(result);
+    expect(actressRepository.save).toHaveBeenCalledWith({ id: 1, ...data });
+  });
+
+  it("delete should remove an actress", async () => {
+    const deleteResultTrue: DeleteResult = { affected: 1, raw: {} };
+    const deleteResultFalse: DeleteResult = { affected: 0, raw: {} };
+
+    actressRepository.delete.mockResolvedValue(deleteResultTrue);
+    expect(await service.delete(1)).toBe(true);
+
+    actressRepository.delete.mockResolvedValue(deleteResultFalse);
+    expect(await service.delete(2)).toBe(false);
+  });
+});
