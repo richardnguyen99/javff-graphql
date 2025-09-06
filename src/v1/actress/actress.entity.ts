@@ -18,7 +18,7 @@ export class Actress {
   id: number;
 
   @Field(() => String)
-  @Column({ unique: true })
+  @Column({ nullable: false })
   name: string;
 
   @Field({ nullable: true })
