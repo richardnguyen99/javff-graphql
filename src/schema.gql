@@ -6,7 +6,6 @@ type ActressImage {
   id: ID!
   url: String!
   attribute: String!
-  actress: Actress!
 }
 
 type Series {
@@ -38,18 +37,21 @@ type Actress {
   dmmId: String
   displayName: String
   ruby: String
-  bust: String
+  bust: Float
   cup: String
-  waist: String
-  hip: String
-  height: String
-  birthday: String
+  waist: Float
+  hip: Float
+  height: Float
+  birthday: DateTime
   bloodType: String
   hobby: String
   prefectures: String
   images: [ActressImage!]
   videos: [Video!]
 }
+
+"""DateTime custom scalar type to work with ISO 8601 date strings"""
+scalar DateTime
 
 type Query {
   actresses: [Actress!]!
@@ -78,11 +80,11 @@ input CreateActressInput {
   dmmId: String
   displayName: String
   ruby: String
-  bust: String
+  bust: Float
   cup: String
-  waist: String
-  hip: String
-  height: String
+  waist: Float
+  hip: Float
+  height: Float
   birthday: String
   bloodType: String
   hobby: String
@@ -100,11 +102,11 @@ input UpdateActressInput {
   dmmId: String
   displayName: String
   ruby: String
-  bust: String
+  bust: Float
   cup: String
-  waist: String
-  hip: String
-  height: String
+  waist: Float
+  hip: Float
+  height: Float
   birthday: String
   bloodType: String
   hobby: String

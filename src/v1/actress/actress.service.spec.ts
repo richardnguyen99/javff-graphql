@@ -113,13 +113,14 @@ describe("ActressService", () => {
   });
 
   it("create should create an actress and images", async () => {
-    const actressData = { id: 1, name: "test" } as Actress;
-    const images = [{ url: "img1", attribute: "main" }];
+    // Use CreateActressInput shape for input
+    const createInput = {
+      name: "test",
+      images: [{ url: "img1", attribute: "main" }],
+    };
+    const actressData = { name: "test" } as Actress;
     const savedActress = { id: 1, name: "test" } as Actress;
-
-    actressRepository.create.mockReturnValue(actressData);
-    actressRepository.save.mockResolvedValue(savedActress);
-
+    const images = createInput.images;
     const imageEntities = images.map(
       (img) =>
         ({
@@ -129,7 +130,8 @@ describe("ActressService", () => {
           actress: savedActress,
         }) as ActressImage
     );
-
+    actressRepository.create.mockReturnValue(actressData);
+    actressRepository.save.mockResolvedValue(savedActress);
     actressImageRepository.create.mockImplementation(
       (img) =>
         ({
@@ -139,19 +141,13 @@ describe("ActressService", () => {
           actress: savedActress,
         }) as ActressImage
     );
-    actressImageRepository.save.mockResolvedValue(imageEntities[0]);
-
-    const result = await service.create({ ...actressData, images });
-
+    actressImageRepository.save.mockResolvedValue(
+      imageEntities as unknown as any
+    );
+    const result = await service.create(createInput);
     expect(result).toEqual({ ...savedActress, images: imageEntities });
-    expect(actressRepository.create).toHaveBeenCalledWith({
-      id: 1,
-      name: "test",
-    });
-    expect(actressRepository.save).toHaveBeenCalledWith({
-      id: 1,
-      name: "test",
-    });
+    expect(actressRepository.create).toHaveBeenCalledWith({ name: "test" });
+    expect(actressRepository.save).toHaveBeenCalledWith({ name: "test" });
     expect(actressImageRepository.create).toHaveBeenCalled();
     expect(actressImageRepository.save).toHaveBeenCalledWith(imageEntities);
   });

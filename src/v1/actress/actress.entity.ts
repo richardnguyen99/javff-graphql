@@ -6,6 +6,7 @@ import {
   OneToMany,
 } from "typeorm";
 import { Field, ID, ObjectType } from "@nestjs/graphql";
+import { Float } from "@nestjs/graphql";
 
 import { ActressImage } from "src/v1/actress/actress-image.entity";
 import { Video } from "src/v1/video/video.entity";
@@ -33,29 +34,29 @@ export class Actress {
   @Column({ nullable: true, name: "ruby" })
   ruby?: string;
 
-  @Field({ nullable: true })
-  @Column({ nullable: true, name: "bust" })
-  bust?: string;
+  @Field(() => Float, { nullable: true })
+  @Column({ nullable: true, name: "bust", type: "float" })
+  bust?: number;
 
   @Field({ nullable: true })
   @Column({ nullable: true, name: "cup" })
   cup?: string;
 
-  @Field({ nullable: true })
-  @Column({ nullable: true, name: "waist" })
-  waist?: string;
+  @Field(() => Float, { nullable: true })
+  @Column({ nullable: true, name: "waist", type: "float" })
+  waist?: number;
+
+  @Field(() => Float, { nullable: true })
+  @Column({ nullable: true, name: "hip", type: "float" })
+  hip?: number;
+
+  @Field(() => Float, { nullable: true })
+  @Column({ nullable: true, name: "height", type: "float" })
+  height?: number;
 
   @Field({ nullable: true })
-  @Column({ nullable: true, name: "hip" })
-  hip?: string;
-
-  @Field({ nullable: true })
-  @Column({ nullable: true, name: "height" })
-  height?: string;
-
-  @Field({ nullable: true })
-  @Column({ nullable: true, name: "birthday" })
-  birthday?: string;
+  @Column({ nullable: true, name: "birthday", type: "date" })
+  birthday?: Date;
 
   @Field({ nullable: true })
   @Column({ nullable: true, name: "blood_type" })

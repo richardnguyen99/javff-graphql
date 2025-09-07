@@ -1,5 +1,12 @@
 import { InputType, Field } from "@nestjs/graphql";
-import { IsString, IsOptional, IsNotEmpty } from "class-validator";
+import {
+  IsString,
+  IsOptional,
+  IsNotEmpty,
+  IsNumber,
+  Min,
+  IsISO8601,
+} from "class-validator";
 
 import { CreateActressImageInput } from "./create-actress-image.input";
 
@@ -27,8 +34,16 @@ export class CreateActressInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  @IsString({ message: "bust must be a string" })
-  bust?: string;
+  @IsNumber(
+    {
+      maxDecimalPlaces: 2,
+    },
+    {
+      message: "bust must be a number",
+    }
+  )
+  @Min(0, { message: "bust must be at least 0" })
+  bust?: number;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -37,22 +52,54 @@ export class CreateActressInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  @IsString({ message: "waist must be a string" })
-  waist?: string;
+  @IsNumber(
+    {
+      maxDecimalPlaces: 2,
+    },
+    {
+      message: "waist must be a number",
+    }
+  )
+  @Min(0, { message: "waist must be at least 0" })
+  waist?: number;
 
   @Field({ nullable: true })
   @IsOptional()
-  @IsString({ message: "hip must be a string" })
-  hip?: string;
+  @IsNumber(
+    {
+      maxDecimalPlaces: 2,
+    },
+    {
+      message: "hip must be a number",
+    }
+  )
+  @Min(0, { message: "hip must be at least 0" })
+  hip?: number;
 
   @Field({ nullable: true })
   @IsOptional()
-  @IsString({ message: "height must be a string" })
-  height?: string;
+  @IsNumber(
+    {
+      maxDecimalPlaces: 2,
+    },
+    {
+      message: "height must be a number",
+    }
+  )
+  @Min(0, { message: "height must be at least 0" })
+  height?: number;
 
   @Field({ nullable: true })
   @IsOptional()
-  @IsString({ message: "birthday must be a string" })
+  @IsISO8601(
+    {
+      strict: true,
+    },
+    {
+      message:
+        "birthday must be a valid ISO 8601 date string such as YYYY-MM-DD",
+    }
+  )
   birthday?: string;
 
   @Field({ nullable: true })

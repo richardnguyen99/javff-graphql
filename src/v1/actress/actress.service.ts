@@ -47,15 +47,9 @@ export class ActressService {
 
   async create(data: CreateActressInput): Promise<Actress> {
     const { images, ...actressData } = data;
-    let savedActress: Actress;
 
-    try {
-      const actress = this.actressRepository.create(actressData);
-      savedActress = await this.actressRepository.save(actress);
-    } catch (error) {
-      console.error("Error creating actress:", error);
-      throw error;
-    }
+    const actress = this.actressRepository.create(actressData);
+    const savedActress = await this.actressRepository.save(actress);
 
     if (images && images.length > 0) {
       const imageEntities = images.map((img) =>

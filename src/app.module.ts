@@ -8,6 +8,7 @@ import { join } from "path";
 import { V1Module } from "./v1/v1.module";
 import { DatabaseConfigService } from "./config/database.config";
 import { EnvConfig } from "./config/config.interface";
+import { DateTimeScalar } from "./scalars/date-time.scalar";
 
 @Module({
   imports: [
@@ -36,8 +37,11 @@ import { EnvConfig } from "./config/config.interface";
         return {
           autoSchemaFile: join(process.cwd(), "src/schema.gql"),
           path: configService.get("GRAPHQL_PATH", "/graphql/v1"),
-          playground: isDev,
+          graphiql: isDev,
           introspection: isDev,
+          buildSchemaOptions: {
+            numberScalarMode: "float",
+          },
         };
       },
     }),
@@ -45,6 +49,6 @@ import { EnvConfig } from "./config/config.interface";
     V1Module,
   ],
 
-  providers: [DatabaseConfigService],
+  providers: [DatabaseConfigService, DateTimeScalar],
 })
 export class AppModule {}

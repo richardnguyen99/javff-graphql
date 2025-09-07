@@ -24,7 +24,6 @@ export class ActressImage {
   @Column()
   attribute: string; // e.g., "large", "small", "fallback"
 
-  @Field(() => Actress)
   @ManyToOne(() => Actress, (actress) => actress.images, {
     onDelete: "CASCADE",
   })
