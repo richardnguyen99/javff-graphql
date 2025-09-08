@@ -39,6 +39,20 @@ import { DateTimeScalar } from "./scalars/date-time.scalar";
           path: configService.get("GRAPHQL_PATH", "/graphql/v1"),
           graphiql: isDev,
           introspection: isDev,
+          formatError: (formattedError) => {
+            return {
+              message:
+                formattedError.extensions["originalError"]?.["message"].join(
+                  ", "
+                ) ?? formattedError.message,
+              path: formattedError.path,
+              locations: formattedError.locations,
+              extensions: {
+                code: formattedError.extensions["code"],
+                originalError: formattedError.extensions["originalError"],
+              },
+            };
+          },
           buildSchemaOptions: {
             numberScalarMode: "float",
           },
