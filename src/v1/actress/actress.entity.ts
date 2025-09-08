@@ -4,6 +4,7 @@ import {
   Column,
   ManyToMany,
   OneToMany,
+  Index,
 } from "typeorm";
 import { Field, ID, ObjectType } from "@nestjs/graphql";
 import { Float } from "@nestjs/graphql";
@@ -24,6 +25,7 @@ export class Actress {
 
   @Field({ nullable: true })
   @Column({ nullable: true, name: "dmm_id" })
+  @Index({ unique: true, where: "dmm_id IS NOT NULL" })
   dmmId?: string;
 
   @Field({ nullable: true })

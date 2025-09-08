@@ -130,6 +130,7 @@ describe("ActressService", () => {
           actress: savedActress,
         }) as ActressImage
     );
+
     actressRepository.create.mockReturnValue(actressData);
     actressRepository.save.mockResolvedValue(savedActress);
     actressImageRepository.create.mockImplementation(
@@ -144,7 +145,9 @@ describe("ActressService", () => {
     actressImageRepository.save.mockResolvedValue(
       imageEntities as unknown as any
     );
+
     const result = await service.create(createInput);
+
     expect(result).toEqual({ ...savedActress, images: imageEntities });
     expect(actressRepository.create).toHaveBeenCalledWith({ name: "test" });
     expect(actressRepository.save).toHaveBeenCalledWith({ name: "test" });
