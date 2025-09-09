@@ -15,11 +15,15 @@ import {
   maxDecimalPlacesFormat,
   nonBlankOrEmptyStringFormat,
 } from "src/common/utils/error-formatter";
+import {
+  safeTrimTransformer,
+  strictTrimTransformer,
+} from "src/common/utils/transformers";
 
 @InputType()
 export class CreateActressInput {
   @Field()
-  @Transform(({ value }) => value.trim())
+  @Transform(strictTrimTransformer)
   @MinLength(1, {
     message: nonBlankOrEmptyStringFormat("name"),
   })
@@ -27,7 +31,7 @@ export class CreateActressInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === "string" ? value.trim() : value))
+  @Transform(safeTrimTransformer)
   @MinLength(1, {
     message: nonBlankOrEmptyStringFormat("dmmId"),
   })
@@ -35,7 +39,7 @@ export class CreateActressInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === "string" ? value.trim() : value))
+  @Transform(safeTrimTransformer)
   @MinLength(1, {
     message: nonBlankOrEmptyStringFormat("displayName"),
   })
@@ -43,7 +47,7 @@ export class CreateActressInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === "string" ? value.trim() : value))
+  @Transform(safeTrimTransformer)
   @MinLength(1, { message: nonBlankOrEmptyStringFormat("ruby") })
   ruby?: string;
 
@@ -62,7 +66,7 @@ export class CreateActressInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === "string" ? value.trim() : value))
+  @Transform(safeTrimTransformer)
   @MinLength(1, { message: nonBlankOrEmptyStringFormat("cup") })
   cup?: string;
 
@@ -119,19 +123,19 @@ export class CreateActressInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === "string" ? value.trim() : value))
+  @Transform(safeTrimTransformer)
   @MinLength(1, { message: nonBlankOrEmptyStringFormat("bloodType") })
   bloodType?: string;
 
   @Field({ nullable: true })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === "string" ? value.trim() : value))
+  @Transform(safeTrimTransformer)
   @MinLength(1, { message: nonBlankOrEmptyStringFormat("hobby") })
   hobby?: string;
 
   @Field({ nullable: true })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === "string" ? value.trim() : value))
+  @Transform(safeTrimTransformer)
   @MinLength(1, { message: nonBlankOrEmptyStringFormat("prefectures") })
   prefectures?: string;
 

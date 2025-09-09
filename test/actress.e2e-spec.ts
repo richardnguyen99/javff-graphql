@@ -280,6 +280,68 @@ describe("Actress Module (e2e)", () => {
       });
       expect(deleted).toBeNull();
     });
+
+    it("should create a new actress with images", async () => {
+      const mutation = `
+        mutation($input: CreateActressInput!) {
+          createActress(input: $input) {
+            id
+            name
+            images {
+              id
+              url
+              attribute
+            }
+          }
+        }
+      `;
+
+      const input = {
+        name: "Actress With Images",
+        images: [
+          { url: "http://example.com/image1.jpg", attribute: "large" },
+          { url: "http://example.com/image2.jpg", attribute: "small" },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: mutation,
+          variables: { input },
+        })
+        .expect(200);
+
+      expect(response.body.data.createActress).toMatchObject({
+        name: "Actress With Images",
+        images: [
+          {
+            id: expect.any(String),
+            url: "http://example.com/image1.jpg",
+            attribute: "large",
+          },
+          {
+            id: expect.any(String),
+            url: "http://example.com/image2.jpg",
+            attribute: "small",
+          },
+        ],
+      });
+
+      const saved = await dataSource.getRepository(Actress).findOne({
+        where: { name: "Actress With Images" },
+        relations: ["images"],
+      });
+
+      expect(saved).toBeTruthy();
+      expect(saved.images).toHaveLength(2);
+      expect(saved.images.map((i) => i.url)).toEqual(
+        expect.arrayContaining([
+          "http://example.com/image1.jpg",
+          "http://example.com/image2.jpg",
+        ])
+      );
+    });
   });
 
   describe("Database Constraints", () => {
