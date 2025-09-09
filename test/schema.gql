@@ -1,0 +1,108 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type ActressImage {
+  id: ID!
+  url: String!
+  attribute: String!
+}
+
+type Series {
+  id: ID!
+  name: String!
+  videos: [Video!]
+}
+
+type Maker {
+  id: ID!
+  name: String!
+  videos: [Video!]
+}
+
+type Video {
+  id: ID!
+  code: String!
+  title: String!
+  coverImage: String
+  releaseDate: String
+  actresses: [Actress!]
+  series: Series
+  maker: Maker
+}
+
+type Actress {
+  id: ID!
+  name: String!
+  dmmId: String
+  displayName: String
+  ruby: String
+  bust: Float
+  cup: String
+  waist: Float
+  hip: Float
+  height: Float
+  birthday: DateTime
+  bloodType: String
+  hobby: String
+  prefectures: String
+  images: [ActressImage!]
+  videos: [Video!]
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Query {
+  actresses: [Actress!]!
+  actress(id: Int!): Actress
+  searchActressesByName(name: String!): [Actress!]!
+  actressByDmmId(dmmId: String!): Actress
+}
+
+type Mutation {
+  createActress(input: CreateActressInput!): Actress!
+  updateActress(id: Int!, input: UpdateActressInput!): Actress!
+  deleteActress(id: Int!): Boolean!
+}
+
+input CreateActressInput {
+  name: String!
+  dmmId: String
+  displayName: String
+  ruby: String
+  bust: Float
+  cup: String
+  waist: Float
+  hip: Float
+  height: Float
+  birthday: String
+  bloodType: String
+  hobby: String
+  prefectures: String
+  images: [CreateActressImageInput!]
+}
+
+input CreateActressImageInput {
+  url: String!
+  attribute: String!
+}
+
+input UpdateActressInput {
+  name: String
+  dmmId: String
+  displayName: String
+  ruby: String
+  bust: Float
+  cup: String
+  waist: Float
+  hip: Float
+  height: Float
+  birthday: String
+  bloodType: String
+  hobby: String
+  prefectures: String
+  images: [CreateActressImageInput!]
+}
