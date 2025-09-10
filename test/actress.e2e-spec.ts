@@ -1,4 +1,4 @@
-import { INestApplication } from "@nestjs/common";
+import { INestApplication, ValidationPipe } from "@nestjs/common";
 import * as request from "supertest";
 import { DataSource } from "typeorm";
 
@@ -12,7 +12,17 @@ describe("Actress Module (e2e)", () => {
 
   beforeAll(async () => {
     await TestSetup.setupTestContainer();
-    app = await TestSetup.setupTestApp();
+
+    app = await TestSetup.setupTestApp({
+      onInit: (appInstance: INestApplication) => {
+        appInstance.useGlobalPipes(
+          new ValidationPipe({
+            transform: true,
+          })
+        );
+      },
+    });
+
     dataSource = await TestSetup.getDataSource();
   }, 60000);
 
@@ -341,6 +351,272 @@ describe("Actress Module (e2e)", () => {
           "http://example.com/image2.jpg",
         ])
       );
+    });
+
+    it("should fail if name is missing", async () => {
+      const mutation = `
+        mutation($input: CreateActressInput!) {
+          createActress(input: $input) {
+            id
+            name
+          }
+        }
+      `;
+
+      const input = {
+        // name is missing
+        displayName: "No Name",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+
+      expect(response.body.errors).toBeDefined();
+      expect(JSON.stringify(response.body.errors)).toMatch(/name/);
+    });
+
+    it("should fail if name is a number", async () => {
+      const mutation = `
+        mutation($input: CreateActressInput!) {
+          createActress(input: $input) {
+            id
+            name
+          }
+        }
+      `;
+
+      const input = {
+        name: 12345, // invalid type
+        displayName: "Number Name",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+
+      expect(response.body.errors).toBeDefined();
+      expect(JSON.stringify(response.body.errors)).toMatch(/name/);
+    });
+
+    it("should fail if bust is a string", async () => {
+      const mutation = `
+        mutation($input: CreateActressInput!) {
+          createActress(input: $input) {
+            id
+            name
+            bust
+          }
+        }
+      `;
+
+      const input = {
+        name: "Invalid Bust",
+        bust: "not-a-number", // invalid type
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+
+      expect(response.body.errors).toBeDefined();
+      expect(JSON.stringify(response.body.errors)).toMatch(/bust/);
+    });
+
+    it("should fail if bust is negative", async () => {
+      const mutation = `
+            mutation($input: CreateActressInput!) {
+              createActress(input: $input) { id }
+            }
+          `;
+      const input = { name: "Test", bust: -5 };
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+      expect(JSON.stringify(response.body.errors)).toMatch(/bust/);
+    });
+
+    it("should fail if bust is negative", async () => {
+      const mutation = `
+            mutation($input: CreateActressInput!) {
+              createActress(input: $input) { id }
+            }
+          `;
+
+      const input = { name: "Test", bust: -5 };
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+      expect(JSON.stringify(response.body.errors)).toMatch(/bust/);
+    });
+
+    it("should fail if images is not an array", async () => {
+      const mutation = `
+        mutation($input: CreateActressInput!) {
+          createActress(input: $input) {
+            id
+            name
+            images {
+              id
+              url
+            }
+          }
+        }
+      `;
+
+      const input = {
+        name: "Invalid Images",
+        images: "not-an-array", // invalid type
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+
+      expect(response.body.errors).toBeDefined();
+      expect(JSON.stringify(response.body.errors)).toMatch(/images/);
+    });
+
+    it("should fail if dmmId is a number", async () => {
+      const mutation = `
+            mutation($input: CreateActressInput!) {
+              createActress(input: $input) { id }
+            }
+          `;
+      const input = { name: "Test", dmmId: 12345 };
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+
+      expect(response.body.errors).toBeDefined();
+      expect(JSON.stringify(response.body.errors)).toMatch(/dmmId/);
+    });
+
+    it("should fail if displayName is blank", async () => {
+      const mutation = `
+            mutation($input: CreateActressInput!) {
+              createActress(input: $input) { id }
+            }
+          `;
+      const input = { name: "Test", displayName: "   " };
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+      expect(JSON.stringify(response.body.errors)).toMatch(/displayName/);
+    });
+
+    it("should fail if ruby is a number", async () => {
+      const mutation = `
+            mutation($input: CreateActressInput!) {
+              createActress(input: $input) { id }
+            }
+          `;
+      const input = { name: "Test", ruby: 123 };
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+      expect(JSON.stringify(response.body.errors)).toMatch(/ruby/);
+    });
+
+    it("should fail if waist is a string", async () => {
+      const mutation = `
+            mutation($input: CreateActressInput!) {
+              createActress(input: $input) { id }
+            }
+          `;
+      const input = { name: "Test", waist: "not-a-number" };
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+      expect(JSON.stringify(response.body.errors)).toMatch(/waist/);
+    });
+
+    it("should fail if hip is negative", async () => {
+      const mutation = `
+            mutation($input: CreateActressInput!) {
+              createActress(input: $input) { id }
+            }
+          `;
+      const input = { name: "Test", hip: -1 };
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+      expect(JSON.stringify(response.body.errors)).toMatch(/hip/);
+    });
+
+    it("should fail if height is a string", async () => {
+      const mutation = `
+            mutation($input: CreateActressInput!) {
+              createActress(input: $input) { id }
+            }
+          `;
+      const input = { name: "Test", height: "tall" };
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+      expect(JSON.stringify(response.body.errors)).toMatch(/height/);
+    });
+
+    it("should fail if birthday is not ISO8601", async () => {
+      const mutation = `
+            mutation($input: CreateActressInput!) {
+              createActress(input: $input) { id }
+            }
+          `;
+      const input = { name: "Test", birthday: "31-12-2000" };
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+      expect(JSON.stringify(response.body.errors)).toMatch(/birthday/);
+    });
+
+    it("should fail if bloodType is blank", async () => {
+      const mutation = `
+            mutation($input: CreateActressInput!) {
+              createActress(input: $input) { id }
+            }
+          `;
+      const input = { name: "Test", bloodType: "   " };
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+      expect(JSON.stringify(response.body.errors)).toMatch(/bloodType/);
+    });
+
+    it("should fail if hobby is blank", async () => {
+      const mutation = `
+            mutation($input: CreateActressInput!) {
+              createActress(input: $input) { 
+                id 
+                name
+                dmmId
+                hobby
+              }
+            }
+          `;
+
+      const input = { name: "Test", dmmId: "123", hobby: "" };
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input } })
+        .expect(200);
+
+      expect(response.body.errors).toBeDefined();
+      expect(JSON.stringify(response.body.errors)).toMatch(/hobby/);
     });
   });
 

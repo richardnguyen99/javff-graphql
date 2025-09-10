@@ -1,4 +1,4 @@
-import { INestApplication } from "@nestjs/common";
+import { INestApplication, ValidationPipe } from "@nestjs/common";
 import * as request from "supertest";
 
 import { TestSetup } from "./test-setup";
@@ -8,7 +8,11 @@ describe("AppController (e2e)", () => {
 
   beforeAll(async () => {
     await TestSetup.setupTestContainer();
-    app = await TestSetup.setupTestApp();
+    app = await TestSetup.setupTestApp({
+      onInit: (appInstance) => {
+        appInstance.useGlobalPipes(new ValidationPipe({ transform: true }));
+      },
+    });
   }, 60000);
 
   afterAll(async () => {

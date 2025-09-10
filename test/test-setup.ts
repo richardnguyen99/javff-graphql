@@ -17,6 +17,10 @@ import { ActressModule } from "src/v1/actress/actress.module";
 import { Series } from "src/v1/series/series.entity";
 import { Maker } from "src/v1/maker/maker.entity";
 
+type SetupTestAppLifeCycle = {
+  onInit?: (app: INestApplication) => void;
+};
+
 export class TestSetup {
   private static container: StartedPostgreSqlContainer;
   private static dataSource: DataSource;
@@ -35,7 +39,9 @@ export class TestSetup {
     );
   }
 
-  static async setupTestApp(): Promise<INestApplication> {
+  static async setupTestApp({
+    onInit,
+  }: SetupTestAppLifeCycle): Promise<INestApplication> {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot({
@@ -62,6 +68,9 @@ export class TestSetup {
     }).compile();
 
     this.app = moduleFixture.createNestApplication();
+
+    onInit?.(this.app);
+
     await this.app.init();
 
     return this.app;
