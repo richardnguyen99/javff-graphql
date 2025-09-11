@@ -9,6 +9,7 @@ import { V1Module } from "./v1/v1.module";
 import { DatabaseConfigService } from "./config/database.config";
 import { EnvConfig } from "./config/config.interface";
 import { DateTimeScalar } from "./scalars/date-time.scalar";
+import { formatError } from "./common/utils/apollo-format-error";
 
 @Module({
   imports: [
@@ -39,23 +40,14 @@ import { DateTimeScalar } from "./scalars/date-time.scalar";
           path: configService.get("GRAPHQL_PATH", "/graphql/v1"),
           graphiql: isDev,
           introspection: isDev,
-          formatError: (formattedError) => {
-            return {
-              message:
-                formattedError.extensions["originalError"]?.["message"].join(
-                  ", "
-                ) ?? formattedError.message,
-              path: formattedError.path,
-              locations: formattedError.locations,
-              extensions: {
-                code: formattedError.extensions["code"],
-                originalError: formattedError.extensions["originalError"],
-              },
-            };
-          },
+          autoTransformHttpErrors: true,
           buildSchemaOptions: {
             numberScalarMode: "float",
           },
+
+          // All errors are caught here and formatted before sending to the client
+          // without reaching to NestJS exception filters.
+          formatError,
         };
       },
     }),
