@@ -16,6 +16,7 @@ import { Video } from "src/v1/video/video.entity";
 import { ActressModule } from "src/v1/actress/actress.module";
 import { Series } from "src/v1/series/series.entity";
 import { Maker } from "src/v1/maker/maker.entity";
+import { formatError } from "src/common/utils/apollo-format-error";
 
 type SetupTestAppLifeCycle = {
   onInit?: (app: INestApplication) => void;
@@ -61,6 +62,7 @@ export class TestSetup {
           autoSchemaFile: join(process.cwd(), "test/schema.gql"),
           path: "/graphql",
           introspection: true,
+          formatError: formatError,
         }),
 
         ActressModule,

@@ -52,7 +52,7 @@ const __formatBadUserInputError = (
   formattedError: GraphQLFormattedError,
   error: ApolloError | GraphQLError
 ) => {
-  const message = error.originalError.message;
+  const message = error.message;
   const originalError = error.originalError;
   const extensions = {
     code: ApolloServerErrorCode.BAD_USER_INPUT,

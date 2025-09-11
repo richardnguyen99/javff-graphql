@@ -374,7 +374,9 @@ describe("Actress Module (e2e)", () => {
         .expect(200);
 
       expect(response.body.errors).toBeDefined();
-      expect(JSON.stringify(response.body.errors)).toMatch(/name/);
+      expect(response.body.errors[0].message).toEqual(
+        'Variable "$input" got invalid value { displayName: "No Name" }; Field "name" of required type "String!" was not provided.'
+      );
     });
 
     it("should fail if name is a number", async () => {
@@ -538,7 +540,12 @@ describe("Actress Module (e2e)", () => {
         .post("/graphql")
         .send({ query: mutation, variables: { input } })
         .expect(200);
-      expect(JSON.stringify(response.body.errors)).toMatch(/waist/);
+
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.errors[0]).toBeDefined();
+      expect(response.body.errors[0].message).toEqual(
+        'Variable "$input" got invalid value "not-a-number" at "input.waist"; Float cannot represent non numeric value: "not-a-number"'
+      );
     });
 
     it("should fail if hip is negative", async () => {
@@ -552,6 +559,7 @@ describe("Actress Module (e2e)", () => {
         .post("/graphql")
         .send({ query: mutation, variables: { input } })
         .expect(200);
+
       expect(JSON.stringify(response.body.errors)).toMatch(/hip/);
     });
 
@@ -566,7 +574,12 @@ describe("Actress Module (e2e)", () => {
         .post("/graphql")
         .send({ query: mutation, variables: { input } })
         .expect(200);
-      expect(JSON.stringify(response.body.errors)).toMatch(/height/);
+
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.errors[0]).toBeDefined();
+      expect(response.body.errors[0].message).toEqual(
+        'Variable "$input" got invalid value "tall" at "input.height"; Float cannot represent non numeric value: "tall"'
+      );
     });
 
     it("should fail if birthday is not ISO8601", async () => {
@@ -575,11 +588,13 @@ describe("Actress Module (e2e)", () => {
               createActress(input: $input) { id }
             }
           `;
+
       const input = { name: "Test", birthday: "31-12-2000" };
       const response = await request(app.getHttpServer())
         .post("/graphql")
         .send({ query: mutation, variables: { input } })
         .expect(200);
+
       expect(JSON.stringify(response.body.errors)).toMatch(/birthday/);
     });
 
@@ -594,6 +609,7 @@ describe("Actress Module (e2e)", () => {
         .post("/graphql")
         .send({ query: mutation, variables: { input } })
         .expect(200);
+
       expect(JSON.stringify(response.body.errors)).toMatch(/bloodType/);
     });
 
