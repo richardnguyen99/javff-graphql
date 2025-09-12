@@ -6,8 +6,14 @@ export class ActressQueryOptionsInput {
   cup?: string;
 
   @Field({ nullable: true })
-  after?: string; // cursor (base64 encoded id)
+  after?: string;
 
-  @Field(() => Int, { nullable: true, defaultValue: 20 })
-  first?: number; // page size
+  @Field({ nullable: true })
+  before?: string;
+
+  @Field(() => Int, { nullable: true })
+  first?: number;
+
+  @Field(() => Int, { nullable: true })
+  last?: number;
 }

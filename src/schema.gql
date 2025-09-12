@@ -50,6 +50,13 @@ type Actress {
   videos: [Video!]
 }
 
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
 type ActressEdge {
   cursor: String!
   node: Actress!
@@ -57,7 +64,8 @@ type ActressEdge {
 
 type ActressConnection {
   edges: [ActressEdge!]!
-  hasNextPage: Boolean!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 """DateTime custom scalar type to work with ISO 8601 date strings"""
@@ -79,7 +87,9 @@ type Query {
 input ActressQueryOptionsInput {
   cup: String
   after: String
-  first: Int = 20
+  before: String
+  first: Int
+  last: Int
 }
 
 type Mutation {

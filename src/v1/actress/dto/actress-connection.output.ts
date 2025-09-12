@@ -1,5 +1,20 @@
-import { ObjectType, Field } from "@nestjs/graphql";
+import { ObjectType, Field, Int } from "@nestjs/graphql";
 import { Actress } from "../actress.entity";
+
+@ObjectType()
+export class PageInfo {
+  @Field()
+  hasNextPage: boolean;
+
+  @Field()
+  hasPreviousPage: boolean;
+
+  @Field({ nullable: true })
+  startCursor?: string;
+
+  @Field({ nullable: true })
+  endCursor?: string;
+}
 
 @ObjectType()
 export class ActressEdge {
@@ -15,6 +30,9 @@ export class ActressConnection {
   @Field(() => [ActressEdge])
   edges: ActressEdge[];
 
-  @Field()
-  hasNextPage: boolean;
+  @Field(() => PageInfo)
+  pageInfo: PageInfo;
+
+  @Field(() => Int)
+  totalCount: number;
 }

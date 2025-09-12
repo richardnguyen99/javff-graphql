@@ -10,6 +10,7 @@ import { ActressQueryOptionsInput } from "./dto/actress-query-options.input";
 import {
   ActressConnection,
   ActressEdge,
+  PageInfo,
 } from "./dto/actress-connection.output";
 
 @Injectable()
@@ -83,6 +84,14 @@ export class ActressService {
     return result.affected > 0;
   }
 
+  private decodeCursor(cursor: string): number {
+    return parseInt(Buffer.from(cursor, "base64").toString("ascii"), 10);
+  }
+
+  private encodeCursor(id: number): string {
+    return Buffer.from(id.toString()).toString("base64");
+  }
+
   async findAllConnection(
     options?: ActressQueryOptionsInput
   ): Promise<ActressConnection> {
@@ -92,28 +101,76 @@ export class ActressService {
       qb.andWhere("actress.cup = :cup", { cup: options.cup });
     }
 
-    if (options?.after) {
-      // Decode the cursor (base64 encoded id)
-      const afterId = parseInt(
-        Buffer.from(options.after, "base64").toString("ascii"),
-        10
-      );
-      qb.andWhere("actress.id > :afterId", { afterId });
+    const totalQb = qb.clone();
+
+    let forward = true;
+    let limit = options?.first ?? 20;
+    if (options?.last) {
+      forward = false;
+      limit = options.last;
     }
 
-    const take = options?.first ?? 20;
-    qb.orderBy("actress.id", "ASC").take(take + 1); // fetch one extra to check hasNextPage
+    if (options?.after) {
+      const afterId = this.decodeCursor(options.after);
+      qb.andWhere("actress.id > :afterId", { afterId });
+    }
+    if (options?.before) {
+      const beforeId = this.decodeCursor(options.before);
+      qb.andWhere("actress.id < :beforeId", { beforeId });
+    }
 
-    const results = await qb.getMany();
+    qb.orderBy("actress.id", forward ? "ASC" : "DESC").take(limit + 1);
 
-    const edges: ActressEdge[] = results.slice(0, take).map((actress) => ({
-      cursor: Buffer.from(actress.id.toString()).toString("base64"),
+    const [results, totalCount] = await Promise.all([
+      qb.getMany(),
+      totalQb.getCount(),
+    ]);
+
+    let hasNextPage = false;
+    let hasPreviousPage = false;
+    let edges: ActressEdge[] = [];
+
+    if (results.length > limit) {
+      hasNextPage = true;
+      results.pop();
+    }
+
+    if (!forward) {
+      results.reverse();
+      hasPreviousPage = hasNextPage;
+      hasNextPage = false;
+    } else {
+      if (options?.after) {
+        const prevQb = this.actressRepository.createQueryBuilder("actress");
+        if (options?.cup) {
+          prevQb.andWhere("actress.cup = :cup", { cup: options.cup });
+        }
+        prevQb.andWhere("actress.id <= :afterId", {
+          afterId: this.decodeCursor(options.after),
+        });
+        prevQb.orderBy("actress.id", "ASC");
+        prevQb.take(1);
+        const prev = await prevQb.getOne();
+        hasPreviousPage = !!prev;
+      }
+    }
+
+    edges = results.map((actress) => ({
+      cursor: this.encodeCursor(actress.id),
       node: actress,
     }));
 
+    const pageInfo: PageInfo = {
+      hasNextPage,
+      hasPreviousPage,
+      startCursor: edges.length > 0 ? edges[0].cursor : null,
+      endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
+    };
+
     return {
       edges,
-      hasNextPage: results.length > take,
+      pageInfo,
+      totalCount,
     };
   }
 }
