@@ -6,6 +6,7 @@ import { Actress } from "src/v1/actress/actress.entity";
 import { ActressImage } from "src/v1/actress/actress-image.entity";
 import { CreateActressInput } from "src/v1/actress/dto/create-actress.input";
 import { UpdateActressInput } from "src/v1/actress/dto/update-actress.input";
+import { ActressQueryOptionsInput } from "./dto/actress-query-options.input";
 
 @Injectable()
 export class ActressService {
@@ -16,8 +17,17 @@ export class ActressService {
     private readonly actressImageRepository: Repository<ActressImage>
   ) {}
 
-  findAll(): Promise<Actress[]> {
-    return this.actressRepository.find({ relations: ["videos", "images"] });
+  findAll(options?: ActressQueryOptionsInput): Promise<Actress[]> {
+    const qb = this.actressRepository.createQueryBuilder("actress");
+
+    if (options?.cup) {
+      qb.andWhere("actress.cup = :cup", { cup: options.cup });
+    }
+
+    qb.skip(options?.offset ?? 0);
+    qb.take(options?.limit ?? 20);
+
+    return qb.getMany();
   }
 
   findOne(id: number): Promise<Actress> {

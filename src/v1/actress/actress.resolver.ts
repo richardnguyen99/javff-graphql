@@ -4,14 +4,18 @@ import { Actress } from "src/v1/actress/actress.entity";
 import { ActressService } from "src/v1/actress/actress.service";
 import { CreateActressInput } from "src/v1/actress/dto/create-actress.input";
 import { UpdateActressInput } from "src/v1/actress/dto/update-actress.input";
+import { ActressQueryOptionsInput } from "./dto/actress-query-options.input";
 
 @Resolver(() => Actress)
 export class ActressResolver {
   constructor(private readonly actressService: ActressService) {}
 
   @Query(() => [Actress])
-  actresses() {
-    return this.actressService.findAll();
+  actresses(
+    @Args("options", { type: () => ActressQueryOptionsInput, nullable: true })
+    options?: ActressQueryOptionsInput
+  ) {
+    return this.actressService.findAll(options);
   }
 
   @Query(() => Actress, { nullable: true })

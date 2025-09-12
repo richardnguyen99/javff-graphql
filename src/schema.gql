@@ -54,7 +54,7 @@ type Actress {
 scalar DateTime
 
 type Query {
-  actresses: [Actress!]!
+  actresses(options: ActressQueryOptionsInput): [Actress!]!
   actress(id: Int!): Actress
   searchActressesByName(name: String!): [Actress!]!
   actressByDmmId(dmmId: String!): Actress
@@ -64,6 +64,12 @@ type Query {
   series(id: Int!): Series
   makers: [Maker!]!
   maker(id: Int!): Maker
+}
+
+input ActressQueryOptionsInput {
+  cup: String
+  offset: Int = 0
+  limit: Int = 20
 }
 
 type Mutation {
