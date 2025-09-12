@@ -7,6 +7,10 @@ import { ActressImage } from "src/v1/actress/actress-image.entity";
 import { CreateActressInput } from "src/v1/actress/dto/create-actress.input";
 import { UpdateActressInput } from "src/v1/actress/dto/update-actress.input";
 import { ActressQueryOptionsInput } from "./dto/actress-query-options.input";
+import {
+  ActressConnection,
+  ActressEdge,
+} from "./dto/actress-connection.output";
 
 @Injectable()
 export class ActressService {
@@ -23,9 +27,6 @@ export class ActressService {
     if (options?.cup) {
       qb.andWhere("actress.cup = :cup", { cup: options.cup });
     }
-
-    qb.skip(options?.offset ?? 0);
-    qb.take(options?.limit ?? 20);
 
     return qb.getMany();
   }
@@ -80,5 +81,39 @@ export class ActressService {
   async delete(id: number): Promise<boolean> {
     const result = await this.actressRepository.delete(id);
     return result.affected > 0;
+  }
+
+  async findAllConnection(
+    options?: ActressQueryOptionsInput
+  ): Promise<ActressConnection> {
+    const qb = this.actressRepository.createQueryBuilder("actress");
+
+    if (options?.cup) {
+      qb.andWhere("actress.cup = :cup", { cup: options.cup });
+    }
+
+    if (options?.after) {
+      // Decode the cursor (base64 encoded id)
+      const afterId = parseInt(
+        Buffer.from(options.after, "base64").toString("ascii"),
+        10
+      );
+      qb.andWhere("actress.id > :afterId", { afterId });
+    }
+
+    const take = options?.first ?? 20;
+    qb.orderBy("actress.id", "ASC").take(take + 1); // fetch one extra to check hasNextPage
+
+    const results = await qb.getMany();
+
+    const edges: ActressEdge[] = results.slice(0, take).map((actress) => ({
+      cursor: Buffer.from(actress.id.toString()).toString("base64"),
+      node: actress,
+    }));
+
+    return {
+      edges,
+      hasNextPage: results.length > take,
+    };
   }
 }

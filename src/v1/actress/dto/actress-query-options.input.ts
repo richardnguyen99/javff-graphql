@@ -5,9 +5,9 @@ export class ActressQueryOptionsInput {
   @Field({ nullable: true })
   cup?: string;
 
-  @Field(() => Int, { nullable: true, defaultValue: 0 })
-  offset?: number;
+  @Field({ nullable: true })
+  after?: string; // cursor (base64 encoded id)
 
   @Field(() => Int, { nullable: true, defaultValue: 20 })
-  limit?: number;
+  first?: number; // page size
 }
