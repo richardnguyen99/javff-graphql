@@ -17,6 +17,7 @@ import { ActressModule } from "src/v1/actress/actress.module";
 import { Series } from "src/v1/series/series.entity";
 import { Maker } from "src/v1/maker/maker.entity";
 import { formatError } from "src/common/utils/apollo-format-error";
+import { DateTimeScalar } from "src/scalars/date-time.scalar";
 
 type SetupTestAppLifeCycle = {
   onInit?: (app: INestApplication) => void;
@@ -67,6 +68,8 @@ export class TestSetup {
 
         ActressModule,
       ],
+
+      providers: [DateTimeScalar],
     }).compile();
 
     this.app = moduleFixture.createNestApplication();
