@@ -4,6 +4,7 @@ import { ActressService } from "./actress.service";
 import { CreateActressInput } from "./dto/create-actress.input";
 import { UpdateActressInput } from "./dto/update-actress.input";
 import { Actress } from "./actress.entity";
+import { ActressConnection } from "./dto/actress-connection.output"; // Add this import
 
 describe("ActressResolver", () => {
   let resolver: ActressResolver;
@@ -20,6 +21,21 @@ describe("ActressResolver", () => {
     findOne: jest.fn().mockResolvedValue(mockActress),
     findByName: jest.fn().mockResolvedValue([mockActress]),
     findByDmmId: jest.fn().mockResolvedValue(mockActress),
+    findAllConnection: jest.fn().mockResolvedValue({
+      edges: [
+        {
+          cursor: Buffer.from("1").toString("base64"),
+          node: mockActress,
+        },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("1").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 1,
+    } as ActressConnection),
     create: jest.fn().mockResolvedValue(mockActress),
     update: jest.fn().mockResolvedValue(mockActress),
     delete: jest.fn().mockResolvedValue(true),
@@ -42,9 +58,23 @@ describe("ActressResolver", () => {
   });
 
   it("should return all actresses", async () => {
-    await expect(resolver.actresses()).resolves.toEqual([mockActress]);
+    await expect(resolver.actresses()).resolves.toEqual({
+      edges: [
+        {
+          cursor: Buffer.from("1").toString("base64"),
+          node: mockActress,
+        },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("1").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 1,
+    });
 
-    expect(service.findAll).toHaveBeenCalled();
+    expect(service.findAllConnection).toHaveBeenCalled();
   });
 
   it("should return an actress by id", async () => {
@@ -89,5 +119,30 @@ describe("ActressResolver", () => {
     await expect(resolver.deleteActress(1)).resolves.toBe(true);
 
     expect(service.delete).toHaveBeenCalledWith(1);
+  });
+
+  it("should return a relay-style connection for actresses", async () => {
+    const mockConnection: ActressConnection = {
+      edges: [
+        {
+          cursor: Buffer.from("1").toString("base64"),
+          node: mockActress,
+        },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("1").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 1,
+    };
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnection);
+
+    await expect(resolver.actresses({ first: 1 })).resolves.toEqual(
+      mockConnection
+    );
+    expect(service.findAllConnection).toHaveBeenCalledWith({ first: 1 });
   });
 });

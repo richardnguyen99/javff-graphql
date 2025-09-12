@@ -46,7 +46,7 @@ describe("Actress Module (e2e)", () => {
 
   describe("GraphQL Queries", () => {
     it("should fetch all actresses", async () => {
-      const actress = await dataSource.getRepository(Actress).save({
+      await dataSource.getRepository(Actress).save({
         name: "Test Actress",
         displayName: "Test Display Name",
         dmmId: "test123",
@@ -55,10 +55,14 @@ describe("Actress Module (e2e)", () => {
       const query = `
         query {
           actresses {
-            id
-            name
-            displayName
-            dmmId
+            edges {
+              node {
+                id
+                name
+                displayName
+                dmmId
+              }
+            }
           }
         }
       `;
@@ -68,12 +72,17 @@ describe("Actress Module (e2e)", () => {
         .send({ query })
         .expect(200);
 
-      expect(response.body.data.actresses).toHaveLength(1);
-      expect(response.body.data.actresses[0]).toMatchObject({
-        id: actress.id.toString(),
-        name: "Test Actress",
-        displayName: "Test Display Name",
-        dmmId: "test123",
+      expect(response.body.data.actresses).toMatchObject({
+        edges: [
+          {
+            node: {
+              id: "1",
+              name: "Test Actress",
+              displayName: "Test Display Name",
+              dmmId: "test123",
+            },
+          },
+        ],
       });
     });
 

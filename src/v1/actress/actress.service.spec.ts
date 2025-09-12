@@ -6,6 +6,7 @@ import { DeleteResult } from "typeorm";
 import { ActressService } from "src/v1/actress/actress.service";
 import { Actress } from "src/v1/actress/actress.entity";
 import { ActressImage } from "src/v1/actress/actress-image.entity";
+import { ActressEdge, PageInfo } from "./dto/actress-connection.output"; // Add this import
 
 const mockActressRepository = () => ({
   find: jest.fn(),
@@ -53,16 +54,6 @@ describe("ActressService", () => {
 
   it("should be defined", () => {
     expect(service).toBeDefined();
-  });
-
-  it("findAll should return all actresses", async () => {
-    const result = [{ id: 1 } as Actress];
-    actressRepository.find.mockResolvedValue(result);
-
-    expect(await service.findAll()).toBe(result);
-    expect(actressRepository.find).toHaveBeenCalledWith({
-      relations: ["videos", "images"],
-    });
   });
 
   it("findOne should return an actress by id", async () => {
@@ -174,5 +165,38 @@ describe("ActressService", () => {
 
     actressRepository.delete.mockResolvedValue(deleteResultFalse);
     expect(await service.delete(2)).toBe(false);
+  });
+
+  it("findAllConnection should return a relay-style connection", async () => {
+    const mockActress = { id: 1, name: "Test", cup: "D" } as Actress;
+    const mockEdges: ActressEdge[] = [
+      { cursor: Buffer.from("1").toString("base64"), node: mockActress },
+    ];
+    const mockPageInfo: PageInfo = {
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: mockEdges[0].cursor,
+      endCursor: mockEdges[0].cursor,
+    };
+
+    const getMany = jest.fn().mockResolvedValue([mockActress]);
+    const getCount = jest.fn().mockResolvedValue(1);
+    const qb = {
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getMany,
+      clone: jest.fn().mockReturnThis(),
+      getCount,
+    };
+
+    actressRepository.createQueryBuilder.mockReturnValue(qb as any);
+
+    const result = await service.findAllConnection({ first: 1 });
+
+    expect(result.edges).toHaveLength(1);
+    expect(result.edges[0].node).toEqual(mockActress);
+    expect(result.pageInfo).toEqual(mockPageInfo);
+    expect(result.totalCount).toBe(1);
   });
 });
