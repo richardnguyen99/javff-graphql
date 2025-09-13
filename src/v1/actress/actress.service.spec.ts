@@ -199,4 +199,58 @@ describe("ActressService", () => {
     expect(result.pageInfo).toEqual(mockPageInfo);
     expect(result.totalCount).toBe(1);
   });
+
+  it("findAllConnection should filter by cup, bust, waist, hip, and year", async () => {
+    const mockActress = {
+      id: 2,
+      name: "Filtered",
+      cup: "C",
+      bust: 85,
+      waist: 58,
+      hip: 88,
+      birthday: new Date("1989-05-01"),
+    } as Actress;
+
+    const getMany = jest.fn().mockResolvedValue([mockActress]);
+    const getCount = jest.fn().mockResolvedValue(1);
+    const qb = {
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getMany,
+      clone: jest.fn().mockReturnThis(),
+      getCount,
+    };
+
+    actressRepository.createQueryBuilder.mockReturnValue(qb as any);
+
+    const options = {
+      cup: "C",
+      bust: 85,
+      waist: 58,
+      hip: 88,
+      year: 1990,
+      first: 1,
+    };
+
+    const result = await service.findAllConnection(options);
+
+    expect(qb.andWhere).toHaveBeenCalledWith("actress.cup = :cup", {
+      cup: "C",
+    });
+    expect(qb.andWhere).toHaveBeenCalledWith("actress.bust >= :bust", {
+      bust: 85,
+    });
+    expect(qb.andWhere).toHaveBeenCalledWith("actress.waist >= :waist", {
+      waist: 58,
+    });
+    expect(qb.andWhere).toHaveBeenCalledWith("actress.hip >= :hip", {
+      hip: 88,
+    });
+    expect(qb.andWhere).toHaveBeenCalledWith(
+      "EXTRACT(YEAR FROM actress.birthday) <= :year",
+      { year: 1990 }
+    );
+    expect(result.edges[0].node).toEqual(mockActress);
+  });
 });

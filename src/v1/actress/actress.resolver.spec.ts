@@ -145,4 +145,44 @@ describe("ActressResolver", () => {
     );
     expect(service.findAllConnection).toHaveBeenCalledWith({ first: 1 });
   });
+
+  it("should return actresses filtered by cup, bust, waist, hip, and year", async () => {
+    const options = {
+      cup: "C",
+      bust: 85,
+      waist: 58,
+      hip: 88,
+      year: 1990,
+      first: 1,
+    };
+
+    const mockConnection: ActressConnection = {
+      edges: [
+        {
+          cursor: Buffer.from("2").toString("base64"),
+          node: {
+            id: 2,
+            name: "Filtered",
+            cup: "C",
+            bust: 85,
+            waist: 58,
+            hip: 88,
+            birthday: new Date("1989-05-01"),
+          } as Actress,
+        },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("2").toString("base64"),
+        endCursor: Buffer.from("2").toString("base64"),
+      },
+      totalCount: 1,
+    };
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnection);
+
+    await expect(resolver.actresses(options)).resolves.toEqual(mockConnection);
+    expect(service.findAllConnection).toHaveBeenCalledWith(options);
+  });
 });

@@ -118,15 +118,19 @@ export class ActressService {
     if (options?.cup) {
       qb.andWhere("actress.cup = :cup", { cup: options.cup });
     }
+
     if (options?.bust !== undefined) {
       qb.andWhere("actress.bust >= :bust", { bust: options.bust });
     }
+
     if (options?.waist !== undefined) {
       qb.andWhere("actress.waist >= :waist", { waist: options.waist });
     }
+
     if (options?.hip !== undefined) {
       qb.andWhere("actress.hip >= :hip", { hip: options.hip });
     }
+
     if (options?.year !== undefined) {
       qb.andWhere("EXTRACT(YEAR FROM actress.birthday) <= :year", {
         year: options.year,
