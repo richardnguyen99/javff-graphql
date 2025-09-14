@@ -172,7 +172,7 @@ input ActressQueryOptionsInput {
   """Number of records to fetch backward"""
   last: Int
 
-  """Sort by field ('cup' or 'bust' supported). Default is id."""
+  """Sort by field ('cup', 'bust', or 'waist' supported)"""
   sortBy: String
 
   """Sort order: ASC (default) or DESC"""

@@ -1,6 +1,16 @@
 import { InputType, Field, Int, Float } from "@nestjs/graphql";
 import { registerEnumType } from "@nestjs/graphql";
 
+export enum ActressSortOrder {
+  ASC = "ASC",
+  DESC = "DESC",
+}
+
+registerEnumType(ActressSortOrder, {
+  name: "ActressSortOrder",
+  description: "Sort order: ASC for ascending, DESC for descending",
+});
+
 @InputType()
 export class ActressQueryOptionsInput {
   @Field({ nullable: true, description: "Filter by cup size (e.g., 'C', 'D')" })
@@ -50,9 +60,9 @@ export class ActressQueryOptionsInput {
 
   @Field({
     nullable: true,
-    description: "Sort by field ('cup' or 'bust' supported). Default is id.",
+    description: "Sort by field ('cup', 'bust', or 'waist' supported)",
   })
-  sortBy?: "cup" | "bust";
+  sortBy?: "cup" | "bust" | "waist";
 
   @Field(() => ActressSortOrder, {
     nullable: true,
@@ -60,13 +70,3 @@ export class ActressQueryOptionsInput {
   })
   sortOrder?: ActressSortOrder;
 }
-
-export enum ActressSortOrder {
-  ASC = "ASC",
-  DESC = "DESC",
-}
-
-registerEnumType(ActressSortOrder, {
-  name: "ActressSortOrder",
-  description: "Sort order: ASC for ascending, DESC for descending",
-});
