@@ -187,6 +187,8 @@ describe("ActressService", () => {
       take: jest.fn().mockReturnThis(),
       getMany,
       clone: jest.fn().mockReturnThis(),
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
       getCount,
     };
 
@@ -220,6 +222,8 @@ describe("ActressService", () => {
       getMany,
       clone: jest.fn().mockReturnThis(),
       getCount,
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
     };
 
     actressRepository.createQueryBuilder.mockReturnValue(qb as any);
