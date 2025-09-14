@@ -60,9 +60,9 @@ export class ActressQueryOptionsInput {
 
   @Field({
     nullable: true,
-    description: "Sort by field ('cup', 'bust', or 'waist' supported)",
+    description: "Sort by field ('cup', 'bust', 'waist', or 'hip' supported)",
   })
-  sortBy?: "cup" | "bust" | "waist";
+  sortBy?: "cup" | "bust" | "waist" | "hip";
 
   @Field(() => ActressSortOrder, {
     nullable: true,
