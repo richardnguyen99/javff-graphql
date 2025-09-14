@@ -168,15 +168,18 @@ export class ActressService {
       sortField = "actress.hip";
     } else if (options?.sortBy === "height") {
       sortField = "actress.height";
+    } else if (options?.sortBy === "birthday") {
+      sortField = "actress.birthday";
     }
 
-    // For cup, bust, waist, hip, or height descending, add NULLS LAST
+    // For cup, bust, waist, hip, height, or birthday descending, add NULLS LAST
     if (
       (sortField === "actress.cup" ||
         sortField === "actress.bust" ||
         sortField === "actress.waist" ||
         sortField === "actress.hip" ||
-        sortField === "actress.height") &&
+        sortField === "actress.height" ||
+        sortField === "actress.birthday") &&
       sortOrder === "DESC"
     ) {
       qb.orderBy(sortField, "DESC", "NULLS LAST").addOrderBy(
