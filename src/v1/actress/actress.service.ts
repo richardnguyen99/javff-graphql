@@ -155,7 +155,24 @@ export class ActressService {
       qb.andWhere("actress.id < :beforeId", { beforeId });
     }
 
-    qb.orderBy("actress.id", forward ? "ASC" : "DESC").take(limit + 1);
+    let sortField = "actress.id";
+    const sortOrder = options?.sortOrder ?? "ASC";
+
+    if (options?.sortBy === "cup") {
+      sortField = "actress.cup";
+    }
+
+    // For cup descending, add NULLS LAST
+    if (sortField === "actress.cup" && sortOrder === "DESC") {
+      qb.orderBy(sortField, "DESC", "NULLS LAST").addOrderBy(
+        "actress.id",
+        "ASC"
+      );
+    } else {
+      qb.orderBy(sortField, sortOrder).addOrderBy("actress.id", sortOrder);
+    }
+
+    qb.take(limit + 1);
 
     const [results, totalCount] = await Promise.all([
       qb.getMany(),

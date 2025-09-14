@@ -1,4 +1,5 @@
 import { InputType, Field, Int, Float } from "@nestjs/graphql";
+import { registerEnumType } from "@nestjs/graphql";
 
 @InputType()
 export class ActressQueryOptionsInput {
@@ -46,4 +47,27 @@ export class ActressQueryOptionsInput {
     description: "Number of records to fetch backward",
   })
   last?: number;
+
+  @Field({
+    nullable: true,
+    description:
+      "Sort by field. Available: id, cup, bust, waist, hip, year. Default is id.",
+  })
+  sortBy?: "cup";
+
+  @Field(() => ActressSortOrder, {
+    nullable: true,
+    description: "Sort order: ASC (default) or DESC",
+  })
+  sortOrder?: ActressSortOrder;
 }
+
+export enum ActressSortOrder {
+  ASC = "ASC",
+  DESC = "DESC",
+}
+
+registerEnumType(ActressSortOrder, {
+  name: "ActressSortOrder",
+  description: "Sort order: ASC for ascending, DESC for descending",
+});
