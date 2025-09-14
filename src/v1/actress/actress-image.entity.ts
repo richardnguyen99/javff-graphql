@@ -12,15 +12,18 @@ import { Actress } from "./actress.entity";
 @ObjectType()
 @Entity()
 export class ActressImage {
-  @Field(() => ID)
+  @Field(() => ID, { description: "Unique identifier for the actress image" })
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field()
+  @Field({ description: "The URL of the actress image" })
   @Column()
   url: string;
 
-  @Field()
+  @Field({
+    description:
+      "The attribute or type of the image (e.g., large, small, fallback)",
+  })
   @Column()
   attribute: string; // e.g., "large", "small", "fallback"
 

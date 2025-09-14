@@ -3,36 +3,48 @@ import { Actress } from "../actress.entity";
 
 @ObjectType()
 export class PageInfo {
-  @Field()
+  @Field({ description: "Indicates if there are more pages after this one" })
   hasNextPage: boolean;
 
-  @Field()
+  @Field({ description: "Indicates if there are pages before this one" })
   hasPreviousPage: boolean;
 
-  @Field({ nullable: true })
+  @Field({
+    nullable: true,
+    description: "Cursor of the first item in the current page",
+  })
   startCursor?: string;
 
-  @Field({ nullable: true })
+  @Field({
+    nullable: true,
+    description: "Cursor of the last item in the current page",
+  })
   endCursor?: string;
 }
 
 @ObjectType()
 export class ActressEdge {
-  @Field()
+  @Field({ description: "A cursor for use in pagination" })
   cursor: string;
 
-  @Field(() => Actress)
+  @Field(() => Actress, { description: "The actress node" })
   node: Actress;
 }
 
 @ObjectType()
 export class ActressConnection {
-  @Field(() => [ActressEdge])
+  @Field(() => [ActressEdge], {
+    description: "A list of edges (actress nodes with cursors)",
+  })
   edges: ActressEdge[];
 
-  @Field(() => PageInfo)
+  @Field(() => PageInfo, {
+    description: "Pagination information for this connection",
+  })
   pageInfo: PageInfo;
 
-  @Field(() => Int)
+  @Field(() => Int, {
+    description: "Total number of actresses matching the filter",
+  })
   totalCount: number;
 }

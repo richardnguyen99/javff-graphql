@@ -3,8 +3,13 @@
 # ------------------------------------------------------
 
 type ActressImage {
+  """Unique identifier for the actress image"""
   id: ID!
+
+  """The URL of the actress image"""
   url: String!
+
+  """The attribute or type of the image (e.g., large, small, fallback)"""
   attribute: String!
 }
 
@@ -32,39 +37,85 @@ type Video {
 }
 
 type Actress {
+  """Unique identifier for the actress"""
   id: ID!
+
+  """The actress's name"""
   name: String!
+
+  """DMM ID (unique identifier, optional)"""
   dmmId: String
+
+  """Display name (optional)"""
   displayName: String
+
+  """Ruby (kana reading, optional)"""
   ruby: String
+
+  """Bust size in cm (optional)"""
   bust: Float
+
+  """Cup size (optional)"""
   cup: String
+
+  """Waist size in cm (optional)"""
   waist: Float
+
+  """Hip size in cm (optional)"""
   hip: Float
+
+  """Height in cm (optional)"""
   height: Float
+
+  """Birthday (ISO 8601 date, optional)"""
   birthday: DateTime
+
+  """Blood type (optional)"""
   bloodType: String
+
+  """Hobby (optional)"""
   hobby: String
+
+  """Prefectures (optional)"""
   prefectures: String
+
+  """List of actress images"""
   images: [ActressImage!]
+
+  """List of videos featuring the actress"""
   videos: [Video!]
 }
 
 type PageInfo {
+  """Indicates if there are more pages after this one"""
   hasNextPage: Boolean!
+
+  """Indicates if there are pages before this one"""
   hasPreviousPage: Boolean!
+
+  """Cursor of the first item in the current page"""
   startCursor: String
+
+  """Cursor of the last item in the current page"""
   endCursor: String
 }
 
 type ActressEdge {
+  """A cursor for use in pagination"""
   cursor: String!
+
+  """The actress node"""
   node: Actress!
 }
 
 type ActressConnection {
+  """A list of edges (actress nodes with cursors)"""
   edges: [ActressEdge!]!
+
+  """Pagination information for this connection"""
   pageInfo: PageInfo!
+
+  """Total number of actresses matching the filter"""
   totalCount: Int!
 }
 
@@ -72,9 +123,18 @@ type ActressConnection {
 scalar DateTime
 
 type Query {
+  """
+  Get a paginated list of actresses with optional filters and Relay-style pagination.
+  """
   actresses(options: ActressQueryOptionsInput): ActressConnection!
+
+  """Get a single actress by her numeric ID."""
   actress(id: Int!): Actress
+
+  """Search for actresses by name (partial match)."""
   searchActressesByName(name: String!): [Actress!]!
+
+  """Get a single actress by her DMM ID."""
   actressByDmmId(dmmId: String!): Actress
   videos: [Video!]!
   video(id: Int!): Video
@@ -85,20 +145,42 @@ type Query {
 }
 
 input ActressQueryOptionsInput {
+  """Filter by cup size (e.g., 'C', 'D')"""
   cup: String
+
+  """Filter by minimum bust size (cm)"""
   bust: Float
+
+  """Filter by minimum waist size (cm)"""
   waist: Float
+
+  """Filter by minimum hip size (cm)"""
   hip: Float
+
+  """Filter by birth year or earlier (e.g., 1990)"""
   year: Int
+
+  """Cursor for forward pagination"""
   after: String
+
+  """Cursor for backward pagination"""
   before: String
+
+  """Number of records to fetch forward"""
   first: Int
+
+  """Number of records to fetch backward"""
   last: Int
 }
 
 type Mutation {
+  """Create a new actress record."""
   createActress(input: CreateActressInput!): Actress!
+
+  """Update an existing actress record by ID."""
   updateActress(id: Int!, input: UpdateActressInput!): Actress!
+
+  """Delete an actress record by ID."""
   deleteActress(id: Int!): Boolean!
   createVideo(code: String!, title: String!, coverImage: String, releaseDate: String): Video!
   createSeries(name: String!): Series!
@@ -106,40 +188,96 @@ type Mutation {
 }
 
 input CreateActressInput {
+  """The actress's name (required, non-blank)"""
   name: String!
+
+  """DMM ID (unique identifier, optional)"""
   dmmId: String
+
+  """Display name (optional, non-blank)"""
   displayName: String
+
+  """Ruby (kana reading, optional, non-blank)"""
   ruby: String
+
+  """Bust size in cm (optional, min 1, max 2 decimal places)"""
   bust: Float
+
+  """Cup size (optional, non-blank)"""
   cup: String
+
+  """Waist size in cm (optional, min 1, max 2 decimal places)"""
   waist: Float
+
+  """Hip size in cm (optional, min 0, max 2 decimal places)"""
   hip: Float
+
+  """Height in cm (optional, min 0, max 2 decimal places)"""
   height: Float
+
+  """Birthday (ISO 8601 format, optional)"""
   birthday: String
+
+  """Blood type (optional, non-blank)"""
   bloodType: String
+
+  """Hobby (optional, non-blank)"""
   hobby: String
+
+  """Prefectures (optional, non-blank)"""
   prefectures: String
+
+  """List of actress images (optional)"""
   images: [CreateActressImageInput!]
 }
 
 input CreateActressImageInput {
+  """The URL of the actress image"""
   url: String!
+
+  """The attribute or type of the image (e.g., profile, cover)"""
   attribute: String!
 }
 
 input UpdateActressInput {
   name: String
+
+  """DMM ID (unique identifier, optional)"""
   dmmId: String
+
+  """Display name (optional, non-blank)"""
   displayName: String
+
+  """Ruby (kana reading, optional, non-blank)"""
   ruby: String
+
+  """Bust size in cm (optional, min 1, max 2 decimal places)"""
   bust: Float
+
+  """Cup size (optional, non-blank)"""
   cup: String
+
+  """Waist size in cm (optional, min 1, max 2 decimal places)"""
   waist: Float
+
+  """Hip size in cm (optional, min 0, max 2 decimal places)"""
   hip: Float
+
+  """Height in cm (optional, min 0, max 2 decimal places)"""
   height: Float
+
+  """Birthday (ISO 8601 format, optional)"""
   birthday: String
+
+  """Blood type (optional, non-blank)"""
   bloodType: String
+
+  """Hobby (optional, non-blank)"""
   hobby: String
+
+  """Prefectures (optional, non-blank)"""
   prefectures: String
+
+  """List of actress images (optional)"""
   images: [CreateActressImageInput!]
 }
