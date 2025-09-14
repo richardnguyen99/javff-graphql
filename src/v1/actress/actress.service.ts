@@ -113,7 +113,9 @@ export class ActressService {
   async findAllConnection(
     options?: ActressQueryOptionsInput
   ): Promise<ActressConnection> {
-    const qb = this.actressRepository.createQueryBuilder("actress");
+    const qb = this.actressRepository
+      .createQueryBuilder("actress")
+      .leftJoinAndSelect("actress.images", "images");
 
     if (options?.cup) {
       qb.andWhere("actress.cup = :cup", { cup: options.cup });
@@ -172,7 +174,6 @@ export class ActressService {
       sortField = "actress.birthday";
     }
 
-    // For cup, bust, waist, hip, height, or birthday descending, add NULLS LAST
     if (
       (sortField === "actress.cup" ||
         sortField === "actress.bust" ||
