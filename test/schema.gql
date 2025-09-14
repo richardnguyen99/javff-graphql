@@ -80,6 +80,10 @@ type Query {
 
 input ActressQueryOptionsInput {
   cup: String
+  bust: Float
+  waist: Float
+  hip: Float
+  year: Int
   after: String
   before: String
   first: Int

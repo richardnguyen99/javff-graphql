@@ -45,16 +45,41 @@ describe("Actress Module (e2e)", () => {
   });
 
   describe("GraphQL Queries", () => {
-    it("should fetch all actresses", async () => {
-      await dataSource.getRepository(Actress).save({
-        name: "Test Actress",
-        displayName: "Test Display Name",
-        dmmId: "test123",
-      });
+    beforeEach(async () => {
+      // Seed diverse actresses for filter tests
+      await dataSource.getRepository(Actress).save([
+        {
+          name: "Aki",
+          cup: "B",
+          bust: 80,
+          waist: 58,
+          hip: 85,
+          birthday: "1995-01-01",
+        },
+        {
+          name: "Mio",
+          cup: "C",
+          bust: 85,
+          waist: 60,
+          hip: 88,
+          birthday: "1990-05-10",
+        },
+        {
+          name: "Yuna",
+          cup: "D",
+          bust: 90,
+          waist: 62,
+          hip: 90,
+          birthday: "1985-12-31",
+        },
+      ]);
+    });
 
+    it("should fetch all actresses", async () => {
       const query = `
         query {
           actresses {
+            totalCount
             edges {
               node {
                 id
@@ -74,16 +99,174 @@ describe("Actress Module (e2e)", () => {
 
       expect(response.body.data.actresses).toMatchObject({
         edges: [
-          {
-            node: {
-              id: "1",
-              name: "Test Actress",
-              displayName: "Test Display Name",
-              dmmId: "test123",
-            },
-          },
+          { node: { name: "Aki", displayName: null, dmmId: null } },
+          { node: { name: "Mio", displayName: null, dmmId: null } },
+          { node: { name: "Yuna", displayName: null, dmmId: null } },
         ],
       });
+    });
+
+    it("should filter actresses by cup", async () => {
+      const query = `
+      query {
+        actresses(options: { cup: "C" }) {
+          edges { node { name cup } }
+          totalCount
+        }
+      }
+    `;
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.actresses.edges).toHaveLength(1);
+      expect(response.body.data.actresses.edges[0].node).toMatchObject({
+        name: "Mio",
+        cup: "C",
+      });
+      expect(response.body.data.actresses.totalCount).toBe(1);
+    });
+
+    it("should filter actresses by bust", async () => {
+      const query = `
+      query {
+        actresses(options: { bust: 85 }) {
+          edges { node { name bust } }
+          totalCount
+        }
+      }
+    `;
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      expect(names).toEqual(expect.arrayContaining(["Mio", "Yuna"]));
+      expect(response.body.data.actresses.totalCount).toBe(2);
+    });
+
+    it("should filter actresses by waist", async () => {
+      const query = `
+      query {
+        actresses(options: { waist: 60 }) {
+          edges { node { name waist } }
+          totalCount
+        }
+      }
+    `;
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      expect(names).toEqual(expect.arrayContaining(["Mio", "Yuna"]));
+      expect(response.body.data.actresses.totalCount).toBe(2);
+    });
+
+    it("should filter actresses by hip", async () => {
+      const query = `
+      query {
+        actresses(options: { hip: 88 }) {
+          edges { node { name hip } }
+          totalCount
+        }
+      }
+    `;
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.actresses.edges).toHaveLength(2);
+      expect(response.body.data.actresses.totalCount).toBe(2);
+
+      expect(response.body.data.actresses.edges[0].node.name).toBe("Mio");
+      expect(response.body.data.actresses.edges[1].node.name).toBe("Yuna");
+    });
+
+    it("should filter actresses by year (age)", async () => {
+      const query = `
+      query {
+        actresses(options: { year: 1990 }) {
+          edges { node { name birthday } }
+          totalCount
+        }
+      }
+    `;
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      expect(names).toEqual(expect.arrayContaining(["Mio", "Yuna"]));
+      expect(response.body.data.actresses.totalCount).toBe(2);
+    });
+
+    it("should filter actresses by multiple options", async () => {
+      const query = `
+      query {
+        actresses(options: { cup: "D", bust: 90, waist: 62, hip: 90, year: 1985 }) {
+          edges { node { name cup bust waist hip birthday } }
+          totalCount
+        }
+      }
+    `;
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.actresses.edges).toHaveLength(1);
+      expect(response.body.data.actresses.edges[0].node.name).toBe("Yuna");
+      expect(response.body.data.actresses.totalCount).toBe(1);
+    });
+
+    it("should support pagination with first and after", async () => {
+      // Get first 2 actresses
+      const query = `
+      query {
+        actresses(options: { first: 2 }) {
+          edges { cursor node { name } }
+          pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
+        }
+      }
+    `;
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.actresses.edges).toHaveLength(2);
+      expect(response.body.data.actresses.pageInfo.hasNextPage).toBe(true);
+
+      // Use endCursor as after for next page
+      const endCursor = response.body.data.actresses.pageInfo.endCursor;
+      const nextQuery = `
+      query {
+        actresses(options: { first: 2, after: "${endCursor}" }) {
+          edges { node { name } }
+          pageInfo { hasNextPage hasPreviousPage }
+        }
+      }
+    `;
+      const nextResponse = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: nextQuery })
+        .expect(200);
+
+      expect(
+        nextResponse.body.data.actresses.edges.length
+      ).toBeGreaterThanOrEqual(1);
+      expect(nextResponse.body.data.actresses.pageInfo.hasPreviousPage).toBe(
+        true
+      );
     });
 
     it("should fetch actress by id", async () => {
