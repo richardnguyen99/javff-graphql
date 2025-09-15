@@ -12,6 +12,11 @@ import {
   ActressEdge,
   PageInfo,
 } from "./dto/actress-connection.output";
+import {
+  AddActressImageInput,
+  RemoveActressImageInput,
+  UpdateActressImageInput,
+} from "./dto/update-actress-image.input";
 
 @Injectable()
 export class ActressService {
@@ -265,5 +270,48 @@ export class ActressService {
       pageInfo,
       totalCount,
     };
+  }
+
+  async addImageToActress(input: AddActressImageInput): Promise<ActressImage> {
+    const actress = await this.actressRepository.findOne({
+      where: { id: input.actressId },
+    });
+    if (!actress)
+      throw new NotFoundException(
+        `Actress with ID ${input.actressId} not found`
+      );
+    const imageEntity = this.actressImageRepository.create({
+      url: input.url,
+      attribute: input.attribute,
+      actress: { id: input.actressId },
+    });
+    return this.actressImageRepository.save(imageEntity);
+  }
+
+  async updateActressImage(
+    input: UpdateActressImageInput
+  ): Promise<ActressImage> {
+    const existing = await this.actressImageRepository.findOne({
+      where: { id: input.id, actress: { id: input.actressId } },
+    });
+    if (!existing)
+      throw new NotFoundException(
+        `Image with ID ${input.id} not found for actress ${input.actressId}`
+      );
+    if (input.url !== undefined) existing.url = input.url;
+    if (input.attribute !== undefined) existing.attribute = input.attribute;
+    return this.actressImageRepository.save(existing);
+  }
+
+  async removeActressImage(input: RemoveActressImageInput): Promise<boolean> {
+    const existing = await this.actressImageRepository.findOne({
+      where: { id: input.id, actress: { id: input.actressId } },
+    });
+    if (!existing)
+      throw new NotFoundException(
+        `Image with ID ${input.id} not found for actress ${input.actressId}`
+      );
+    await this.actressImageRepository.delete({ id: input.id });
+    return true;
   }
 }

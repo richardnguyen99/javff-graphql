@@ -119,6 +119,12 @@ type ActressConnection {
   totalCount: Int!
 }
 
+type ActressImageOutput {
+  id: Int!
+  url: String!
+  attribute: String!
+}
+
 type UpdateActressOutput {
   """Unique identifier for the actress"""
   id: ID
@@ -241,6 +247,15 @@ type Mutation {
   """Update an existing actress record by ID."""
   updateActress(id: Int!, input: UpdateActressInput!): UpdateActressOutput!
 
+  """Add an image to an actress."""
+  addActressImage(input: AddActressImageInput!): ActressImageOutput!
+
+  """Update an image of an actress. Image id is required."""
+  updateActressImage(input: UpdateActressImageInput!): ActressImageOutput!
+
+  """Remove an image from an actress. Image id is required."""
+  removeActressImage(input: RemoveActressImageInput!): Boolean!
+
   """Delete an actress record by ID."""
   deleteActress(id: Int!): Boolean!
   createVideo(code: String!, title: String!, coverImage: String, releaseDate: String): Video!
@@ -342,4 +357,37 @@ input UpdateActressInput {
 
   """List of actress images (optional)"""
   images: [CreateActressImageInput!]
+}
+
+input AddActressImageInput {
+  """ID of the actress"""
+  actressId: ID!
+
+  """The URL of the actress image"""
+  url: String!
+
+  """The attribute or type of the image (e.g., profile, cover)"""
+  attribute: String!
+}
+
+input UpdateActressImageInput {
+  """ID of the actress"""
+  actressId: ID!
+
+  """ID of the image"""
+  id: ID!
+
+  """The URL of the actress image"""
+  url: String
+
+  """The attribute or type of the image (e.g., profile, cover)"""
+  attribute: String
+}
+
+input RemoveActressImageInput {
+  """ID of the actress"""
+  actressId: ID!
+
+  """ID of the image"""
+  id: ID!
 }
