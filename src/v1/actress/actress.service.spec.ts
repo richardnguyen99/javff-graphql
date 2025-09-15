@@ -8,6 +8,7 @@ import { Actress } from "src/v1/actress/actress.entity";
 import { ActressImage } from "src/v1/actress/actress-image.entity";
 import { ActressEdge, PageInfo } from "./dto/actress-connection.output";
 import { ActressSortOrder } from "./dto/actress-query-options.input";
+import { NotFoundException } from "@nestjs/common";
 
 function createQbMock(getMany: jest.Mock) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -162,14 +163,44 @@ describe("ActressService", () => {
     expect(actressImageRepository.save).toHaveBeenCalledWith(imageEntities);
   });
 
-  it("update should update an actress", async () => {
+  it("update should update an actress using query builder and return the updated actress", async () => {
     const data = { name: "updated" };
-    const result = { id: 1, ...data } as Actress;
+    const qbMock = {
+      update: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      execute: jest.fn().mockResolvedValue({ affected: 1 }),
+    };
+    const updatedActress = { id: 1, name: "updated" } as Actress;
 
-    actressRepository.save.mockResolvedValue(result);
+    actressRepository.createQueryBuilder.mockReturnValue(qbMock as never);
+    actressRepository.findOne.mockResolvedValue(updatedActress);
 
-    expect(await service.update(1, data)).toBe(result);
-    expect(actressRepository.save).toHaveBeenCalledWith({ id: 1, ...data });
+    const result = await service.update(1, data);
+
+    expect(qbMock.update).toHaveBeenCalled();
+    expect(qbMock.set).toHaveBeenCalledWith(data);
+    expect(qbMock.where).toHaveBeenCalledWith("id = :id", { id: 1 });
+    expect(qbMock.execute).toHaveBeenCalled();
+    expect(actressRepository.findOne).toHaveBeenCalledWith({
+      where: { id: 1 },
+    });
+    expect(result).toBe(updatedActress);
+  });
+
+  it("update should throw NotFoundException if actress does not exist", async () => {
+    const data = { name: "notfound" };
+    const qbMock = {
+      update: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      execute: jest.fn().mockResolvedValue({ affected: 0 }),
+    };
+    actressRepository.createQueryBuilder.mockReturnValue(qbMock as never);
+
+    await expect(service.update(1, data)).rejects.toThrow(
+      new NotFoundException("Actress with ID 1 not found")
+    );
   });
 
   it("delete should remove an actress", async () => {
