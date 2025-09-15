@@ -45,6 +45,8 @@ const mockActressRepository = () => ({
 const mockActressImageRepository = () => ({
   create: jest.fn(),
   save: jest.fn(),
+  findOne: jest.fn(),
+  delete: jest.fn(),
 });
 
 describe("ActressService", () => {
@@ -200,6 +202,148 @@ describe("ActressService", () => {
 
     await expect(service.update(1, data)).rejects.toThrow(
       new NotFoundException("Actress with ID 1 not found")
+    );
+  });
+
+  it("addImageToActress should add an image to a given actress", async () => {
+    const input = {
+      actressId: 1,
+      url: "http://example.com/image.jpg",
+      attribute: "profile",
+    };
+    const actress = { id: 1, name: "Test Actress" } as Actress;
+    const imageEntity = {
+      url: input.url,
+      attribute: input.attribute,
+      actress: { id: input.actressId },
+    } as ActressImage;
+    const savedImage = { ...imageEntity, id: 10 } as ActressImage;
+
+    actressRepository.findOne.mockResolvedValue(actress);
+    actressImageRepository.create.mockReturnValue(imageEntity);
+    actressImageRepository.save.mockResolvedValue(savedImage);
+
+    const result = await service.addImageToActress(input);
+
+    expect(actressRepository.findOne).toHaveBeenCalledWith({
+      where: { id: input.actressId },
+    });
+    expect(actressImageRepository.create).toHaveBeenCalledWith({
+      url: input.url,
+      attribute: input.attribute,
+      actress: { id: input.actressId },
+    });
+    expect(actressImageRepository.save).toHaveBeenCalledWith(imageEntity);
+    expect(result).toBe(savedImage);
+  });
+
+  it("addImageToActress should throw NotFoundException if actress does not exist", async () => {
+    const input = {
+      actressId: 999,
+      url: "http://example.com/image.jpg",
+      attribute: "profile",
+    };
+
+    actressRepository.findOne.mockResolvedValue(null);
+
+    await expect(service.addImageToActress(input)).rejects.toThrow(
+      new NotFoundException(`Actress with ID ${input.actressId} not found`)
+    );
+  });
+
+  it("updateActressImage should update an existing actress image", async () => {
+    const input = {
+      id: 5,
+      actressId: 1,
+      url: "http://example.com/updated.jpg",
+      attribute: "cover",
+    };
+    const existingImage = {
+      id: 5,
+      url: "http://example.com/old.jpg",
+      attribute: "profile",
+      actress: { id: 1 },
+    } as ActressImage;
+    const savedImage = {
+      ...existingImage,
+      url: input.url,
+      attribute: input.attribute,
+    };
+
+    actressImageRepository.findOne.mockResolvedValue(existingImage);
+    actressImageRepository.save.mockResolvedValue(savedImage);
+
+    const result = await service.updateActressImage(input);
+
+    expect(actressImageRepository.findOne).toHaveBeenCalledWith({
+      where: { id: input.id, actress: { id: input.actressId } },
+    });
+    expect(actressImageRepository.save).toHaveBeenCalledWith({
+      ...existingImage,
+      url: input.url,
+      attribute: input.attribute,
+    });
+    expect(result).toEqual(savedImage);
+  });
+
+  it("updateActressImage should throw NotFoundException if image does not exist", async () => {
+    const input = {
+      id: 999,
+      actressId: 1,
+      url: "http://example.com/updated.jpg",
+      attribute: "cover",
+    };
+
+    actressImageRepository.findOne.mockResolvedValue(null);
+
+    await expect(service.updateActressImage(input)).rejects.toThrowError(
+      new NotFoundException(
+        `Image with ID ${input.id} not found for actress ${input.actressId}`
+      )
+    );
+  });
+
+  it("removeActressImage should remove an existing actress image", async () => {
+    const input = {
+      id: 5,
+      actressId: 1,
+    };
+    const existingImage = {
+      id: 5,
+      url: "http://example.com/image.jpg",
+      attribute: "profile",
+      actress: { id: 1 },
+    } as ActressImage;
+
+    actressImageRepository.findOne.mockResolvedValue(existingImage);
+    actressImageRepository.delete.mockResolvedValue({
+      affected: 1,
+      raw: [existingImage],
+    });
+
+    const result = await service.removeActressImage(input);
+
+    expect(actressImageRepository.findOne).toHaveBeenCalledWith({
+      where: { id: input.id, actress: { id: input.actressId } },
+    });
+    expect(actressImageRepository.delete).toHaveBeenCalledWith({
+      id: input.id,
+    });
+    expect(result).toBe(true);
+  });
+
+  it("removeActressImage should throw NotFoundException if image does not exist", async () => {
+    const input = {
+      id: 999,
+      actressId: 1,
+    };
+
+    actressImageRepository.findOne.mockResolvedValue(null);
+
+    await expect(service.removeActressImage(input)).rejects.toThrowError(
+      new NotFoundException(
+        `Image with ID ${input.id} not found for actress ${input.actressId}`
+      )
     );
   });
 

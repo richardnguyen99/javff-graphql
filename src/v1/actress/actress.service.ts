@@ -280,11 +280,13 @@ export class ActressService {
       throw new NotFoundException(
         `Actress with ID ${input.actressId} not found`
       );
+
     const imageEntity = this.actressImageRepository.create({
       url: input.url,
       attribute: input.attribute,
       actress: { id: input.actressId },
     });
+
     return this.actressImageRepository.save(imageEntity);
   }
 
@@ -294,12 +296,15 @@ export class ActressService {
     const existing = await this.actressImageRepository.findOne({
       where: { id: input.id, actress: { id: input.actressId } },
     });
+
     if (!existing)
       throw new NotFoundException(
         `Image with ID ${input.id} not found for actress ${input.actressId}`
       );
+
     if (input.url !== undefined) existing.url = input.url;
     if (input.attribute !== undefined) existing.attribute = input.attribute;
+
     return this.actressImageRepository.save(existing);
   }
 
@@ -307,11 +312,14 @@ export class ActressService {
     const existing = await this.actressImageRepository.findOne({
       where: { id: input.id, actress: { id: input.actressId } },
     });
+
     if (!existing)
       throw new NotFoundException(
         `Image with ID ${input.id} not found for actress ${input.actressId}`
       );
+
     await this.actressImageRepository.delete({ id: input.id });
+
     return true;
   }
 }
