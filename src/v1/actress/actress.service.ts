@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
@@ -97,8 +97,21 @@ export class ActressService {
     return savedActress;
   }
 
-  update(id: number, data: UpdateActressInput): Promise<Actress> {
-    return this.actressRepository.save({ id, ...data });
+  async update(id: number, data: UpdateActressInput): Promise<Actress> {
+    const qb = await this.actressRepository
+      .createQueryBuilder()
+      .update()
+      .set(data)
+      .where("id = :id", { id })
+      .execute();
+
+    if (qb.affected === 0) {
+      throw new NotFoundException(`Actress with ID ${id} not found`);
+    }
+
+    return this.actressRepository.findOne({
+      where: { id },
+    });
   }
 
   async delete(id: number): Promise<boolean> {

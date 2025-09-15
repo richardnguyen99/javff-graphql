@@ -6,6 +6,7 @@ import { CreateActressInput } from "src/v1/actress/dto/create-actress.input";
 import { UpdateActressInput } from "src/v1/actress/dto/update-actress.input";
 import { ActressConnection } from "./dto/actress-connection.output";
 import { ActressQueryOptionsInput } from "./dto/actress-query-options.input";
+import { UpdateActressOutput } from "./dto/update-actress.output";
 
 @Resolver(() => Actress)
 export class ActressResolver {
@@ -52,7 +53,7 @@ export class ActressResolver {
     return this.actressService.create(input);
   }
 
-  @Mutation(() => Actress, {
+  @Mutation(() => UpdateActressOutput, {
     description: "Update an existing actress record by ID.",
   })
   updateActress(
