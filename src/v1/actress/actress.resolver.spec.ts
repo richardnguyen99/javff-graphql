@@ -5,6 +5,7 @@ import { CreateActressInput } from "./dto/create-actress.input";
 import { UpdateActressInput } from "./dto/update-actress.input";
 import { Actress } from "./actress.entity";
 import { ActressConnection } from "./dto/actress-connection.output"; // Add this import
+import { ActressSortOrder } from "./dto/actress-query-options.input";
 
 describe("ActressResolver", () => {
   let resolver: ActressResolver;
@@ -184,5 +185,453 @@ describe("ActressResolver", () => {
 
     await expect(resolver.actresses(options)).resolves.toEqual(mockConnection);
     expect(service.findAllConnection).toHaveBeenCalledWith(options);
+  });
+
+  it("should return a relay-style connection sorted by cup ASC and DESC, handling nulls", async () => {
+    const actressNullCup = { id: 1, name: "NullCup", cup: null } as Actress;
+    const actressCupA = { id: 2, name: "CupA", cup: "A" } as Actress;
+    const actressCupD = { id: 3, name: "CupD", cup: "D" } as Actress;
+
+    const mockConnectionAsc: ActressConnection = {
+      edges: [
+        { cursor: Buffer.from("2").toString("base64"), node: actressCupA },
+        { cursor: Buffer.from("3").toString("base64"), node: actressCupD },
+        { cursor: Buffer.from("1").toString("base64"), node: actressNullCup },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("2").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 3,
+    };
+
+    const mockConnectionDesc: ActressConnection = {
+      edges: [
+        { cursor: Buffer.from("3").toString("base64"), node: actressCupD },
+        { cursor: Buffer.from("2").toString("base64"), node: actressCupA },
+        { cursor: Buffer.from("1").toString("base64"), node: actressNullCup },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("3").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 3,
+    };
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnectionAsc);
+
+    await expect(
+      resolver.actresses({
+        sortBy: "cup",
+        sortOrder: ActressSortOrder.ASC,
+        first: 10,
+      })
+    ).resolves.toEqual(mockConnectionAsc);
+    expect(service.findAllConnection).toHaveBeenCalledWith({
+      sortBy: "cup",
+      sortOrder: ActressSortOrder.ASC,
+      first: 10,
+    });
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnectionDesc);
+
+    await expect(
+      resolver.actresses({
+        sortBy: "cup",
+        sortOrder: ActressSortOrder.DESC,
+        first: 10,
+      })
+    ).resolves.toEqual(mockConnectionDesc);
+    expect(service.findAllConnection).toHaveBeenCalledWith({
+      sortBy: "cup",
+      sortOrder: ActressSortOrder.DESC,
+      first: 10,
+    });
+  });
+
+  it("should return a relay-style connection sorted by bust ASC and DESC, handling nulls", async () => {
+    const actressNullBust = { id: 1, name: "NullBust", bust: null } as Actress;
+    const actressBust80 = { id: 2, name: "Bust80", bust: 80 } as Actress;
+    const actressBust100 = { id: 3, name: "Bust100", bust: 100 } as Actress;
+
+    const mockConnectionAsc: ActressConnection = {
+      edges: [
+        { cursor: Buffer.from("2").toString("base64"), node: actressBust80 },
+        { cursor: Buffer.from("3").toString("base64"), node: actressBust100 },
+        { cursor: Buffer.from("1").toString("base64"), node: actressNullBust },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("2").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 3,
+    };
+
+    const mockConnectionDesc: ActressConnection = {
+      edges: [
+        { cursor: Buffer.from("3").toString("base64"), node: actressBust100 },
+        { cursor: Buffer.from("2").toString("base64"), node: actressBust80 },
+        { cursor: Buffer.from("1").toString("base64"), node: actressNullBust },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("3").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 3,
+    };
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnectionAsc);
+
+    await expect(
+      resolver.actresses({
+        sortBy: "bust",
+        sortOrder: ActressSortOrder.ASC,
+        first: 10,
+      })
+    ).resolves.toEqual(mockConnectionAsc);
+    expect(service.findAllConnection).toHaveBeenCalledWith({
+      sortBy: "bust",
+      sortOrder: ActressSortOrder.ASC,
+      first: 10,
+    });
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnectionDesc);
+
+    await expect(
+      resolver.actresses({
+        sortBy: "bust",
+        sortOrder: ActressSortOrder.DESC,
+        first: 10,
+      })
+    ).resolves.toEqual(mockConnectionDesc);
+    expect(service.findAllConnection).toHaveBeenCalledWith({
+      sortBy: "bust",
+      sortOrder: ActressSortOrder.DESC,
+      first: 10,
+    });
+  });
+
+  it("should return a relay-style connection sorted by waist ASC and DESC, handling nulls", async () => {
+    const actressNullWaist = {
+      id: 1,
+      name: "NullWaist",
+      waist: null,
+    } as Actress;
+    const actressWaist58 = { id: 2, name: "Waist58", waist: 58 } as Actress;
+    const actressWaist65 = { id: 3, name: "Waist65", waist: 65 } as Actress;
+
+    const mockConnectionAsc: ActressConnection = {
+      edges: [
+        { cursor: Buffer.from("2").toString("base64"), node: actressWaist58 },
+        { cursor: Buffer.from("3").toString("base64"), node: actressWaist65 },
+        { cursor: Buffer.from("1").toString("base64"), node: actressNullWaist },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("2").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 3,
+    };
+
+    const mockConnectionDesc: ActressConnection = {
+      edges: [
+        { cursor: Buffer.from("3").toString("base64"), node: actressWaist65 },
+        { cursor: Buffer.from("2").toString("base64"), node: actressWaist58 },
+        { cursor: Buffer.from("1").toString("base64"), node: actressNullWaist },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("3").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 3,
+    };
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnectionAsc);
+
+    await expect(
+      resolver.actresses({
+        sortBy: "waist",
+        sortOrder: ActressSortOrder.ASC,
+        first: 10,
+      })
+    ).resolves.toEqual(mockConnectionAsc);
+    expect(service.findAllConnection).toHaveBeenCalledWith({
+      sortBy: "waist",
+      sortOrder: ActressSortOrder.ASC,
+      first: 10,
+    });
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnectionDesc);
+
+    await expect(
+      resolver.actresses({
+        sortBy: "waist",
+        sortOrder: ActressSortOrder.DESC,
+        first: 10,
+      })
+    ).resolves.toEqual(mockConnectionDesc);
+    expect(service.findAllConnection).toHaveBeenCalledWith({
+      sortBy: "waist",
+      sortOrder: ActressSortOrder.DESC,
+      first: 10,
+    });
+  });
+
+  it("should return a relay-style connection sorted by hip ASC and DESC, handling nulls", async () => {
+    const actressNullHip = { id: 1, name: "NullHip", hip: null } as Actress;
+    const actressHip85 = { id: 2, name: "Hip85", hip: 85 } as Actress;
+    const actressHip95 = { id: 3, name: "Hip95", hip: 95 } as Actress;
+
+    const mockConnectionAsc: ActressConnection = {
+      edges: [
+        { cursor: Buffer.from("2").toString("base64"), node: actressHip85 },
+        { cursor: Buffer.from("3").toString("base64"), node: actressHip95 },
+        { cursor: Buffer.from("1").toString("base64"), node: actressNullHip },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("2").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 3,
+    };
+
+    const mockConnectionDesc: ActressConnection = {
+      edges: [
+        { cursor: Buffer.from("3").toString("base64"), node: actressHip95 },
+        { cursor: Buffer.from("2").toString("base64"), node: actressHip85 },
+        { cursor: Buffer.from("1").toString("base64"), node: actressNullHip },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("3").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 3,
+    };
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnectionAsc);
+
+    await expect(
+      resolver.actresses({
+        sortBy: "hip",
+        sortOrder: ActressSortOrder.ASC,
+        first: 10,
+      })
+    ).resolves.toEqual(mockConnectionAsc);
+    expect(service.findAllConnection).toHaveBeenCalledWith({
+      sortBy: "hip",
+      sortOrder: ActressSortOrder.ASC,
+      first: 10,
+    });
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnectionDesc);
+
+    await expect(
+      resolver.actresses({
+        sortBy: "hip",
+        sortOrder: ActressSortOrder.DESC,
+        first: 10,
+      })
+    ).resolves.toEqual(mockConnectionDesc);
+    expect(service.findAllConnection).toHaveBeenCalledWith({
+      sortBy: "hip",
+      sortOrder: ActressSortOrder.DESC,
+      first: 10,
+    });
+  });
+
+  it("should return a relay-style connection sorted by height ASC and DESC, handling nulls", async () => {
+    const actressNullHeight = {
+      id: 1,
+      name: "NullHeight",
+      height: null,
+    } as Actress;
+    const actressHeight150 = {
+      id: 2,
+      name: "Height150",
+      height: 150,
+    } as Actress;
+    const actressHeight170 = {
+      id: 3,
+      name: "Height170",
+      height: 170,
+    } as Actress;
+
+    const mockConnectionAsc: ActressConnection = {
+      edges: [
+        { cursor: Buffer.from("2").toString("base64"), node: actressHeight150 },
+        { cursor: Buffer.from("3").toString("base64"), node: actressHeight170 },
+        {
+          cursor: Buffer.from("1").toString("base64"),
+          node: actressNullHeight,
+        },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("2").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 3,
+    };
+
+    const mockConnectionDesc: ActressConnection = {
+      edges: [
+        { cursor: Buffer.from("3").toString("base64"), node: actressHeight170 },
+        { cursor: Buffer.from("2").toString("base64"), node: actressHeight150 },
+        {
+          cursor: Buffer.from("1").toString("base64"),
+          node: actressNullHeight,
+        },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("3").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 3,
+    };
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnectionAsc);
+
+    await expect(
+      resolver.actresses({
+        sortBy: "height",
+        sortOrder: ActressSortOrder.ASC,
+        first: 10,
+      })
+    ).resolves.toEqual(mockConnectionAsc);
+    expect(service.findAllConnection).toHaveBeenCalledWith({
+      sortBy: "height",
+      sortOrder: ActressSortOrder.ASC,
+      first: 10,
+    });
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnectionDesc);
+
+    await expect(
+      resolver.actresses({
+        sortBy: "height",
+        sortOrder: ActressSortOrder.DESC,
+        first: 10,
+      })
+    ).resolves.toEqual(mockConnectionDesc);
+    expect(service.findAllConnection).toHaveBeenCalledWith({
+      sortBy: "height",
+      sortOrder: ActressSortOrder.DESC,
+      first: 10,
+    });
+  });
+
+  it("should return a relay-style connection sorted by birthday ASC and DESC, handling nulls", async () => {
+    const actressNullBirthday = {
+      id: 1,
+      name: "NullBirthday",
+      birthday: null,
+    } as Actress;
+    const actressBirthday1990 = {
+      id: 2,
+      name: "Birthday1990",
+      birthday: new Date("1990-01-01"),
+    } as Actress;
+    const actressBirthday1980 = {
+      id: 3,
+      name: "Birthday1980",
+      birthday: new Date("1980-01-01"),
+    } as Actress;
+
+    const mockConnectionAsc: ActressConnection = {
+      edges: [
+        {
+          cursor: Buffer.from("3").toString("base64"),
+          node: actressBirthday1980,
+        },
+        {
+          cursor: Buffer.from("2").toString("base64"),
+          node: actressBirthday1990,
+        },
+        {
+          cursor: Buffer.from("1").toString("base64"),
+          node: actressNullBirthday,
+        },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("3").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 3,
+    };
+
+    const mockConnectionDesc: ActressConnection = {
+      edges: [
+        {
+          cursor: Buffer.from("2").toString("base64"),
+          node: actressBirthday1990,
+        },
+        {
+          cursor: Buffer.from("3").toString("base64"),
+          node: actressBirthday1980,
+        },
+        {
+          cursor: Buffer.from("1").toString("base64"),
+          node: actressNullBirthday,
+        },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: Buffer.from("2").toString("base64"),
+        endCursor: Buffer.from("1").toString("base64"),
+      },
+      totalCount: 3,
+    };
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnectionAsc);
+
+    await expect(
+      resolver.actresses({
+        sortBy: "birthday",
+        sortOrder: ActressSortOrder.ASC,
+        first: 10,
+      })
+    ).resolves.toEqual(mockConnectionAsc);
+    expect(service.findAllConnection).toHaveBeenCalledWith({
+      sortBy: "birthday",
+      sortOrder: ActressSortOrder.ASC,
+      first: 10,
+    });
+
+    service.findAllConnection = jest.fn().mockResolvedValue(mockConnectionDesc);
+
+    await expect(
+      resolver.actresses({
+        sortBy: "birthday",
+        sortOrder: ActressSortOrder.DESC,
+        first: 10,
+      })
+    ).resolves.toEqual(mockConnectionDesc);
+    expect(service.findAllConnection).toHaveBeenCalledWith({
+      sortBy: "birthday",
+      sortOrder: ActressSortOrder.DESC,
+      first: 10,
+    });
   });
 });
