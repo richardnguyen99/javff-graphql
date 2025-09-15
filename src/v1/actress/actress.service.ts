@@ -37,6 +37,10 @@ export class ActressService {
       qb.andWhere("actress.waist >= :waist", { waist: options.waist });
     }
 
+    if (options?.height !== undefined) {
+      qb.andWhere("actress.height >= :height", { height: options.height });
+    }
+
     if (options?.hip !== undefined) {
       qb.andWhere("actress.hip >= :hip", { hip: options.hip });
     }
@@ -131,6 +135,10 @@ export class ActressService {
 
     if (options?.hip !== undefined) {
       qb.andWhere("actress.hip >= :hip", { hip: options.hip });
+    }
+
+    if (options?.height !== undefined) {
+      qb.andWhere("actress.height >= :height", { height: options.height });
     }
 
     if (options?.year !== undefined) {

@@ -34,6 +34,12 @@ export class ActressQueryOptionsInput {
   })
   hip?: number;
 
+  @Field(() => Float, {
+    nullable: true,
+    description: "Filter by minimum height size (cm)",
+  })
+  height?: number;
+
   @Field(() => Int, {
     nullable: true,
     description: "Filter by birth year or earlier (e.g., 1990)",

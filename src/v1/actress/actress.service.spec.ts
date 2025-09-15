@@ -6,7 +6,26 @@ import { DeleteResult } from "typeorm";
 import { ActressService } from "src/v1/actress/actress.service";
 import { Actress } from "src/v1/actress/actress.entity";
 import { ActressImage } from "src/v1/actress/actress-image.entity";
-import { ActressEdge, PageInfo } from "./dto/actress-connection.output"; // Add this import
+import { ActressEdge, PageInfo } from "./dto/actress-connection.output";
+import { ActressSortOrder } from "./dto/actress-query-options.input";
+
+function createQbMock(getMany: jest.Mock) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const qb: any = {
+    andWhere: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockImplementation(() => qb),
+    addOrderBy: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
+    getMany,
+    getCount: jest.fn().mockResolvedValue(3),
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    orWhere: jest.fn().mockReturnThis(),
+    clone: jest.fn().mockReturnThis(),
+  };
+
+  return qb;
+}
 
 const mockActressRepository = () => ({
   find: jest.fn(),
@@ -83,7 +102,7 @@ describe("ActressService", () => {
       getMany,
     };
 
-    actressRepository.createQueryBuilder.mockReturnValue(qb as any);
+    actressRepository.createQueryBuilder.mockReturnValue(qb as never);
     const result = await service.findByName("test");
 
     expect(result).toEqual([{ id: 1 }]);
@@ -104,7 +123,6 @@ describe("ActressService", () => {
   });
 
   it("create should create an actress and images", async () => {
-    // Use CreateActressInput shape for input
     const createInput = {
       name: "test",
       images: [{ url: "img1", attribute: "main" }],
@@ -133,9 +151,7 @@ describe("ActressService", () => {
           actress: savedActress,
         }) as ActressImage
     );
-    actressImageRepository.save.mockResolvedValue(
-      imageEntities as unknown as any
-    );
+    actressImageRepository.save.mockResolvedValue(imageEntities as never);
 
     const result = await service.create(createInput);
 
@@ -192,7 +208,7 @@ describe("ActressService", () => {
       getCount,
     };
 
-    actressRepository.createQueryBuilder.mockReturnValue(qb as any);
+    actressRepository.createQueryBuilder.mockReturnValue(qb as never);
 
     const result = await service.findAllConnection({ first: 1 });
 
@@ -226,7 +242,7 @@ describe("ActressService", () => {
       addOrderBy: jest.fn().mockReturnThis(),
     };
 
-    actressRepository.createQueryBuilder.mockReturnValue(qb as any);
+    actressRepository.createQueryBuilder.mockReturnValue(qb as never);
 
     const options = {
       cup: "C",
@@ -256,5 +272,310 @@ describe("ActressService", () => {
       { year: 1990 }
     );
     expect(result.edges[0].node).toEqual(mockActress);
+  });
+
+  it("findAllConnection should sort by cup ASC and DESC, handling nulls", async () => {
+    const actressNullCup = { id: 1, name: "NullCup", cup: null } as Actress;
+    const actressCupA = { id: 2, name: "CupA", cup: "A" } as Actress;
+    const actressCupD = { id: 3, name: "CupD", cup: "D" } as Actress;
+
+    const getManyAsc = jest
+      .fn()
+      .mockResolvedValue([actressCupA, actressCupD, actressNullCup]);
+    const getManyDesc = jest
+      .fn()
+      .mockResolvedValue([actressCupD, actressCupA, actressNullCup]);
+
+    actressRepository.createQueryBuilder.mockReturnValue(
+      createQbMock(getManyAsc)
+    );
+    let result = await service.findAllConnection({
+      sortBy: "cup",
+      sortOrder: ActressSortOrder.ASC,
+      first: 10,
+    });
+
+    expect(result.edges.map((e) => e.node)).toEqual([
+      actressCupA,
+      actressCupD,
+      actressNullCup,
+    ]);
+
+    actressRepository.createQueryBuilder.mockReturnValue(
+      createQbMock(getManyDesc)
+    );
+    result = await service.findAllConnection({
+      sortBy: "cup",
+      sortOrder: ActressSortOrder.DESC,
+      first: 10,
+    });
+
+    expect(result.edges.map((e) => e.node)).toEqual([
+      actressCupD,
+      actressCupA,
+      actressNullCup,
+    ]);
+  });
+
+  it("findAllConnection should sort by bust ASC and DESC, handling nulls", async () => {
+    const actressNullBust = { id: 1, name: "NullBust", bust: null } as Actress;
+    const actressBust80 = { id: 2, name: "Bust80", bust: 80 } as Actress;
+    const actressBust100 = { id: 3, name: "Bust100", bust: 100 } as Actress;
+
+    const getManyAsc = jest
+      .fn()
+      .mockResolvedValue([actressBust80, actressBust100, actressNullBust]);
+    const getManyDesc = jest
+      .fn()
+      .mockResolvedValue([actressBust100, actressBust80, actressNullBust]);
+
+    actressRepository.createQueryBuilder.mockReturnValue(
+      createQbMock(getManyAsc)
+    );
+    let result = await service.findAllConnection({
+      sortBy: "bust",
+      sortOrder: ActressSortOrder.ASC,
+      first: 10,
+    });
+    expect(result.edges.map((e) => e.node)).toEqual([
+      actressBust80,
+      actressBust100,
+      actressNullBust,
+    ]);
+
+    actressRepository.createQueryBuilder.mockReturnValue(
+      createQbMock(getManyDesc)
+    );
+    result = await service.findAllConnection({
+      sortBy: "bust",
+      sortOrder: ActressSortOrder.DESC,
+      first: 10,
+    });
+
+    expect(result.edges.map((e) => e.node)).toEqual([
+      actressBust100,
+      actressBust80,
+      actressNullBust,
+    ]);
+  });
+
+  it("findAllConnection should sort by waist ASC and DESC, handling nulls", async () => {
+    const actressNullWaist = {
+      id: 1,
+      name: "NullWaist",
+      waist: null,
+    } as Actress;
+    const actressWaist58 = { id: 2, name: "Waist58", waist: 58 } as Actress;
+    const actressWaist65 = { id: 3, name: "Waist65", waist: 65 } as Actress;
+
+    const getManyAsc = jest
+      .fn()
+      .mockResolvedValue([actressWaist58, actressWaist65, actressNullWaist]);
+    const getManyDesc = jest
+      .fn()
+      .mockResolvedValue([actressWaist65, actressWaist58, actressNullWaist]);
+
+    actressRepository.createQueryBuilder.mockReturnValue(
+      createQbMock(getManyAsc)
+    );
+    let result = await service.findAllConnection({
+      sortBy: "waist",
+      sortOrder: ActressSortOrder.ASC,
+      first: 10,
+    });
+
+    expect(result.edges.map((e) => e.node)).toEqual([
+      actressWaist58,
+      actressWaist65,
+      actressNullWaist,
+    ]);
+
+    actressRepository.createQueryBuilder.mockReturnValue(
+      createQbMock(getManyDesc)
+    );
+    result = await service.findAllConnection({
+      sortBy: "waist",
+      sortOrder: ActressSortOrder.DESC,
+      first: 10,
+    });
+
+    expect(result.edges.map((e) => e.node)).toEqual([
+      actressWaist65,
+      actressWaist58,
+      actressNullWaist,
+    ]);
+  });
+
+  it("findAllConnection should sort by hip ASC and DESC, handling nulls", async () => {
+    const actressNullHip = { id: 1, name: "NullHip", hip: null } as Actress;
+    const actressHip85 = { id: 2, name: "Hip85", hip: 85 } as Actress;
+    const actressHip95 = { id: 3, name: "Hip95", hip: 95 } as Actress;
+
+    const getManyAsc = jest
+      .fn()
+      .mockResolvedValue([actressHip85, actressHip95, actressNullHip]);
+    const getManyDesc = jest
+      .fn()
+      .mockResolvedValue([actressHip95, actressHip85, actressNullHip]);
+
+    actressRepository.createQueryBuilder.mockReturnValue(
+      createQbMock(getManyAsc)
+    );
+    let result = await service.findAllConnection({
+      sortBy: "hip",
+      sortOrder: ActressSortOrder.ASC,
+      first: 10,
+    });
+
+    expect(result.edges.map((e) => e.node)).toEqual([
+      actressHip85,
+      actressHip95,
+      actressNullHip,
+    ]);
+
+    actressRepository.createQueryBuilder.mockReturnValue(
+      createQbMock(getManyDesc)
+    );
+    result = await service.findAllConnection({
+      sortBy: "hip",
+      sortOrder: ActressSortOrder.DESC,
+      first: 10,
+    });
+
+    expect(result.edges.map((e) => e.node)).toEqual([
+      actressHip95,
+      actressHip85,
+      actressNullHip,
+    ]);
+  });
+
+  it("findAllConnection should sort by height ASC and DESC, handling nulls", async () => {
+    const actressNullHeight = {
+      id: 1,
+      name: "NullHeight",
+      height: null,
+    } as Actress;
+
+    const actressHeight150 = {
+      id: 2,
+      name: "Height150",
+      height: 150,
+    } as Actress;
+
+    const actressHeight170 = {
+      id: 3,
+      name: "Height170",
+      height: 170,
+    } as Actress;
+
+    const getManyAsc = jest
+      .fn()
+      .mockResolvedValue([
+        actressHeight150,
+        actressHeight170,
+        actressNullHeight,
+      ]);
+    const getManyDesc = jest
+      .fn()
+      .mockResolvedValue([
+        actressHeight170,
+        actressHeight150,
+        actressNullHeight,
+      ]);
+
+    actressRepository.createQueryBuilder.mockReturnValue(
+      createQbMock(getManyAsc)
+    );
+    let result = await service.findAllConnection({
+      sortBy: "height",
+      sortOrder: ActressSortOrder.ASC,
+      first: 10,
+    });
+
+    expect(result.edges.map((e) => e.node)).toEqual([
+      actressHeight150,
+      actressHeight170,
+      actressNullHeight,
+    ]);
+
+    actressRepository.createQueryBuilder.mockReturnValue(
+      createQbMock(getManyDesc)
+    );
+    result = await service.findAllConnection({
+      sortBy: "height",
+      sortOrder: ActressSortOrder.DESC,
+      first: 10,
+    });
+
+    expect(result.edges.map((e) => e.node)).toEqual([
+      actressHeight170,
+      actressHeight150,
+      actressNullHeight,
+    ]);
+  });
+
+  it("findAllConnection should sort by birthday ASC and DESC, handling nulls", async () => {
+    const actressNullBirthday = {
+      id: 1,
+      name: "NullBirthday",
+      birthday: null,
+    } as Actress;
+
+    const actressBirthday1990 = {
+      id: 2,
+      name: "Birthday1990",
+      birthday: new Date("1990-01-01"),
+    } as Actress;
+
+    const actressBirthday1980 = {
+      id: 3,
+      name: "Birthday1980",
+      birthday: new Date("1980-01-01"),
+    } as Actress;
+
+    const getManyAsc = jest
+      .fn()
+      .mockResolvedValue([
+        actressBirthday1980,
+        actressBirthday1990,
+        actressNullBirthday,
+      ]);
+    const getManyDesc = jest
+      .fn()
+      .mockResolvedValue([
+        actressBirthday1990,
+        actressBirthday1980,
+        actressNullBirthday,
+      ]);
+
+    actressRepository.createQueryBuilder.mockReturnValue(
+      createQbMock(getManyAsc)
+    );
+    let result = await service.findAllConnection({
+      sortBy: "birthday",
+      sortOrder: ActressSortOrder.ASC,
+      first: 10,
+    });
+
+    expect(result.edges.map((e) => e.node)).toEqual([
+      actressBirthday1980,
+      actressBirthday1990,
+      actressNullBirthday,
+    ]);
+
+    actressRepository.createQueryBuilder.mockReturnValue(
+      createQbMock(getManyDesc)
+    );
+    result = await service.findAllConnection({
+      sortBy: "birthday",
+      sortOrder: ActressSortOrder.DESC,
+      first: 10,
+    });
+
+    expect(result.edges.map((e) => e.node)).toEqual([
+      actressBirthday1990,
+      actressBirthday1980,
+      actressNullBirthday,
+    ]);
   });
 });
