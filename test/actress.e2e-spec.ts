@@ -1465,6 +1465,115 @@ describe("Actress Module (e2e)", () => {
       expect(response.body.data.createActress.images).toHaveLength(2);
       expect(response.body.errors).toBeUndefined();
     });
+
+    it("should update an actress's name and displayName", async () => {
+      const actress = await dataSource.getRepository(Actress).save({
+        name: "Original Name",
+        displayName: "Original Display",
+      });
+
+      const mutation = `
+    mutation($id: Int!, $input: UpdateActressInput!) {
+      updateActress(id: $id, input: $input) {
+        id
+        name
+        displayName
+      }
+    }
+  `;
+
+      const input = {
+        name: "Updated Name",
+        displayName: "Updated Display",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: mutation,
+          variables: { id: actress.id, input },
+        })
+        .expect(200);
+
+      expect(response.body.data.updateActress).toMatchObject({
+        id: actress.id.toString(),
+        name: "Updated Name",
+        displayName: "Updated Display",
+      });
+    });
+
+    it("should update an actress's bust, waist, hip, and birthday", async () => {
+      const actress = await dataSource.getRepository(Actress).save({
+        name: "Body Update",
+        bust: 80,
+        waist: 60,
+        hip: 85,
+        birthday: "1990-01-01",
+      });
+
+      const mutation = `
+    mutation($id: Int!, $input: UpdateActressInput!) {
+      updateActress(id: $id, input: $input) {
+        id
+        bust
+        waist
+        hip
+        birthday
+      }
+    }
+  `;
+
+      const input = {
+        bust: 90,
+        waist: 65,
+        hip: 95,
+        birthday: "1995-05-05",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: mutation,
+          variables: { id: actress.id, input },
+        })
+        .expect(200);
+
+      expect(response.body.data.updateActress).toMatchObject({
+        id: actress.id.toString(),
+        bust: 90,
+        waist: 65,
+        hip: 95,
+        birthday: expect.stringContaining("1995-05-05"),
+      });
+    });
+
+    it("should return null if updating a non-existent actress", async () => {
+      const mutation = `
+    mutation($id: Int!, $input: UpdateActressInput!) {
+      updateActress(id: $id, input: $input) {
+        id
+        name
+      }
+    }
+  `;
+
+      const input = {
+        name: "Does Not Exist",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: mutation,
+          variables: { id: 99999, input },
+        })
+        .expect(200);
+
+      expect(response.body.data).toBeNull();
+      expect(response.body.errors[0].message).toEqual(
+        "Actress with ID 99999 not found"
+      );
+    });
   });
 
   describe("Database Constraints", () => {
