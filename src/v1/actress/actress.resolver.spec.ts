@@ -634,4 +634,61 @@ describe("ActressResolver", () => {
       first: 10,
     });
   });
+
+  it("should add an image to an actress and return the image", async () => {
+    const input = {
+      actressId: 1,
+      url: "http://example.com/image.jpg",
+      attribute: "profile",
+    };
+    const savedImage = {
+      id: 10,
+      url: input.url,
+      attribute: input.attribute,
+      actress: { id: input.actressId },
+    };
+
+    service.addImageToActress = jest.fn().mockResolvedValue(savedImage);
+
+    const result = await resolver.addActressImage(input);
+
+    expect(service.addImageToActress).toHaveBeenCalledWith(input);
+    expect(result).toBe(savedImage);
+  });
+
+  it("should update an image of an actress and return the updated image", async () => {
+    const input = {
+      id: 5,
+      actressId: 1,
+      url: "http://example.com/updated.jpg",
+      attribute: "cover",
+    };
+    const updatedImage = {
+      id: 5,
+      url: input.url,
+      attribute: input.attribute,
+      actress: { id: input.actressId },
+    };
+
+    service.updateActressImage = jest.fn().mockResolvedValue(updatedImage);
+
+    const result = await resolver.updateActressImage(input);
+
+    expect(service.updateActressImage).toHaveBeenCalledWith(input);
+    expect(result).toBe(updatedImage);
+  });
+
+  it("should remove an image from an actress and return true", async () => {
+    const input = {
+      id: 5,
+      actressId: 1,
+    };
+
+    service.removeActressImage = jest.fn().mockResolvedValue(true);
+
+    const result = await resolver.removeActressImage(input);
+
+    expect(service.removeActressImage).toHaveBeenCalledWith(input);
+    expect(result).toBe(true);
+  });
 });
