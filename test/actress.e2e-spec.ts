@@ -420,6 +420,52 @@ describe("Actress Module (e2e)", () => {
       expect(names).toEqual(["Yuna", "Mio", "Aki", "NoBust", "NoCup"]);
     });
 
+    it("should sort actresses by height ascending", async () => {
+      const query = `
+    query {
+      actresses(options: { sortBy: "height", sortOrder: ASC }) {
+        edges { node { name height } }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const heights = response.body.data.actresses.edges.map(
+        (e) => e.node.height
+      );
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      expect(heights).toEqual([null, null, null, null, null]);
+      expect(names).toEqual(["Aki", "Mio", "Yuna", "NoCup", "NoBust"]);
+    });
+
+    it("should sort actresses by height descending", async () => {
+      const query = `
+    query {
+      actresses(options: { sortBy: "height", sortOrder: DESC }) {
+        edges { node { name height } }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const heights = response.body.data.actresses.edges.map(
+        (e) => e.node.height
+      );
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      expect(heights).toEqual([null, null, null, null, null]);
+      expect(names).toEqual(["NoBust", "NoCup", "Yuna", "Mio", "Aki"]);
+    });
+
     it("should sort actresses by birthday ascending", async () => {
       const query = `
     query {
