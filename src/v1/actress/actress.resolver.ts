@@ -84,7 +84,7 @@ export class ActressResolver {
   })
   async updateActressImage(
     @Args("input") input: UpdateActressImageInput
-  ): Promise<ActressImage> {
+  ): Promise<ActressImageOutput> {
     return this.actressService.updateActressImage(input);
   }
 

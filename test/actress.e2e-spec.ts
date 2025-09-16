@@ -1574,6 +1574,241 @@ describe("Actress Module (e2e)", () => {
         "Actress with ID 99999 not found"
       );
     });
+
+    it("should add an image to an existing actress", async () => {
+      const actress = await dataSource.getRepository(Actress).save({
+        name: "Image Actress",
+      });
+
+      const mutation = `
+    mutation($input: AddActressImageInput!) {
+      addActressImage(input: $input) {
+        id
+        url
+        attribute
+      }
+    }
+  `;
+
+      const input = {
+        actressId: actress.id,
+        url: "http://example.com/image.jpg",
+        attribute: "profile",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: mutation,
+          variables: { input },
+        })
+        .expect(200);
+
+      expect(response.body.data.addActressImage).toMatchObject({
+        url: input.url,
+        attribute: input.attribute,
+      });
+
+      const savedImage = await dataSource.getRepository(ActressImage).findOne({
+        where: { url: input.url },
+        relations: ["actress"],
+      });
+
+      expect(savedImage).toBeTruthy();
+      expect(savedImage.url).toBe(input.url);
+      expect(savedImage.attribute).toBe(input.attribute);
+      expect(savedImage.actress.id).toBe(actress.id);
+    });
+
+    it("should fail to add an image if actress does not exist", async () => {
+      const mutation = `
+    mutation($input: AddActressImageInput!) {
+      addActressImage(input: $input) {
+        id
+        url
+        attribute
+      }
+    }
+  `;
+
+      const input = {
+        actressId: 99999,
+        url: "http://example.com/image.jpg",
+        attribute: "profile",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: mutation,
+          variables: { input },
+        })
+        .expect(200);
+
+      expect(response.body.data).toBeNull();
+      expect(response.body.errors[0].message).toEqual(
+        "Actress with ID 99999 not found"
+      );
+    });
+
+    it("should update an existing actress image", async () => {
+      const actress = await dataSource.getRepository(Actress).save({
+        name: "Update Image Actress",
+      });
+
+      const image = await dataSource.getRepository(ActressImage).save({
+        url: "http://example.com/old.jpg",
+        attribute: "profile",
+        actress: actress,
+      });
+
+      const mutation = `
+    mutation($input: UpdateActressImageInput!) {
+      updateActressImage(input: $input) {
+        id
+        url
+        attribute
+      }
+    }
+  `;
+
+      const input = {
+        id: image.id,
+        actressId: actress.id,
+        url: "http://example.com/updated.jpg",
+        attribute: "cover",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: mutation,
+          variables: { input },
+        })
+        .expect(200);
+
+      expect(response.body.data.updateActressImage).toMatchObject({
+        id: image.id,
+        url: input.url,
+        attribute: input.attribute,
+      });
+
+      const updatedImage = await dataSource
+        .getRepository(ActressImage)
+        .findOne({
+          where: { id: image.id },
+          relations: ["actress"],
+        });
+      expect(updatedImage.url).toBe(input.url);
+      expect(updatedImage.attribute).toBe(input.attribute);
+      expect(updatedImage.actress.id).toBe(actress.id);
+    });
+
+    it("should fail to update an image if it does not exist", async () => {
+      const actress = await dataSource.getRepository(Actress).save({
+        name: "Nonexistent Image Actress",
+      });
+
+      const mutation = `
+    mutation($input: UpdateActressImageInput!) {
+      updateActressImage(input: $input) {
+        id
+        url
+        attribute
+      }
+    }
+  `;
+
+      const input = {
+        id: 99999,
+        actressId: actress.id,
+        url: "http://example.com/updated.jpg",
+        attribute: "cover",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: mutation,
+          variables: { input },
+        })
+        .expect(200);
+
+      expect(response.body.data).toBeNull();
+      expect(response.body.errors[0].message).toEqual(
+        `Image with ID ${input.id} not found for actress ${input.actressId}`
+      );
+    });
+
+    it("should remove an existing actress image", async () => {
+      const actress = await dataSource.getRepository(Actress).save({
+        name: "Remove Image Actress",
+      });
+
+      const image = await dataSource.getRepository(ActressImage).save({
+        url: "http://example.com/remove.jpg",
+        attribute: "profile",
+        actress: actress,
+      });
+
+      const mutation = `
+    mutation($input: RemoveActressImageInput!) {
+      removeActressImage(input: $input)
+    }
+  `;
+
+      const input = {
+        id: image.id,
+        actressId: actress.id,
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: mutation,
+          variables: { input },
+        })
+        .expect(200);
+
+      expect(response.body.data.removeActressImage).toBe(true);
+
+      const deletedImage = await dataSource
+        .getRepository(ActressImage)
+        .findOne({
+          where: { id: image.id },
+        });
+      expect(deletedImage).toBeNull();
+    });
+
+    it("should fail to remove an image if it does not exist", async () => {
+      const actress = await dataSource.getRepository(Actress).save({
+        name: "Nonexistent Remove Image Actress",
+      });
+
+      const mutation = `
+    mutation($input: RemoveActressImageInput!) {
+      removeActressImage(input: $input)
+    }
+  `;
+
+      const input = {
+        id: 99999,
+        actressId: actress.id,
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: mutation,
+          variables: { input },
+        })
+        .expect(200);
+
+      expect(response.body.data).toBeNull();
+      expect(response.body.errors[0].message).toEqual(
+        `Image with ID ${input.id} not found for actress ${input.actressId}`
+      );
+    });
   });
 
   describe("Database Constraints", () => {
