@@ -46,7 +46,6 @@ describe("Actress Module (e2e)", () => {
 
   describe("GraphQL Queries", () => {
     beforeEach(async () => {
-      // Seed diverse actresses for filter tests
       await dataSource.getRepository(Actress).save([
         {
           name: "Aki",
@@ -71,6 +70,22 @@ describe("Actress Module (e2e)", () => {
           waist: 62,
           hip: 90,
           birthday: "1985-12-31",
+        },
+        {
+          name: "NoCup",
+          cup: null,
+          bust: null,
+          waist: null,
+          hip: null,
+          birthday: null,
+        },
+        {
+          name: "NoBust",
+          cup: null,
+          bust: null,
+          waist: null,
+          hip: null,
+          birthday: null,
         },
       ]);
     });
@@ -102,6 +117,8 @@ describe("Actress Module (e2e)", () => {
           { node: { name: "Aki", displayName: null, dmmId: null } },
           { node: { name: "Mio", displayName: null, dmmId: null } },
           { node: { name: "Yuna", displayName: null, dmmId: null } },
+          { node: { name: "NoCup", displayName: null, dmmId: null } },
+          { node: { name: "NoBust", displayName: null, dmmId: null } },
         ],
       });
     });
@@ -228,8 +245,240 @@ describe("Actress Module (e2e)", () => {
       expect(response.body.data.actresses.totalCount).toBe(1);
     });
 
+    it("should sort actresses by cup ascending", async () => {
+      const query = `
+    query {
+      actresses(options: { sortBy: "cup", sortOrder: ASC }) {
+        edges { node { name cup } }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const cups = response.body.data.actresses.edges.map((e) => e.node.cup);
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      expect(cups).toEqual(["B", "C", "D", null, null]);
+      expect(names).toEqual(["Aki", "Mio", "Yuna", "NoCup", "NoBust"]);
+    });
+
+    it("should sort actresses by cup descending", async () => {
+      const query = `
+    query {
+      actresses(options: { sortBy: "cup", sortOrder: DESC }) {
+        edges { node { name cup } }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const cups = response.body.data.actresses.edges.map((e) => e.node.cup);
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      expect(cups).toEqual(["D", "C", "B", null, null]);
+      expect(names).toEqual(["Yuna", "Mio", "Aki", "NoBust", "NoCup"]);
+    });
+
+    it("should sort actresses by bust ascending", async () => {
+      const query = `
+    query {
+      actresses(options: { sortBy: "bust", sortOrder: ASC }) {
+        edges { node { name bust } }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const busts = response.body.data.actresses.edges.map((e) => e.node.bust);
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      // Should be sorted: 80, 85, 90, null, null (nulls last)
+      expect(busts).toEqual([80, 85, 90, null, null]);
+      expect(names).toEqual(["Aki", "Mio", "Yuna", "NoCup", "NoBust"]);
+    });
+
+    it("should sort actresses by bust descending", async () => {
+      const query = `
+    query {
+      actresses(options: { sortBy: "bust", sortOrder: DESC }) {
+        edges { node { name bust } }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const busts = response.body.data.actresses.edges.map((e) => e.node.bust);
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      // Should be sorted: 90, 85, 80, null, null (nulls last)
+      expect(busts).toEqual([90, 85, 80, null, null]);
+      expect(names).toEqual(["Yuna", "Mio", "Aki", "NoBust", "NoCup"]);
+    });
+
+    it("should sort actresses by waist ascending", async () => {
+      const query = `
+    query {
+      actresses(options: { sortBy: "waist", sortOrder: ASC }) {
+        edges { node { name waist } }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const waists = response.body.data.actresses.edges.map(
+        (e) => e.node.waist
+      );
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      // Should be sorted: 58, 60, 62, null, null (nulls last)
+      expect(waists).toEqual([58, 60, 62, null, null]);
+      expect(names).toEqual(["Aki", "Mio", "Yuna", "NoCup", "NoBust"]);
+    });
+
+    it("should sort actresses by waist descending", async () => {
+      const query = `
+    query {
+      actresses(options: { sortBy: "waist", sortOrder: DESC }) {
+        edges { node { name waist } }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const waists = response.body.data.actresses.edges.map(
+        (e) => e.node.waist
+      );
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      expect(waists).toEqual([62, 60, 58, null, null]);
+      expect(names).toEqual(["Yuna", "Mio", "Aki", "NoBust", "NoCup"]);
+    });
+
+    it("should sort actresses by hip ascending", async () => {
+      const query = `
+    query {
+      actresses(options: { sortBy: "hip", sortOrder: ASC }) {
+        edges { node { name hip } }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const hips = response.body.data.actresses.edges.map((e) => e.node.hip);
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      expect(hips).toEqual([85, 88, 90, null, null]);
+      expect(names).toEqual(["Aki", "Mio", "Yuna", "NoCup", "NoBust"]);
+    });
+
+    it("should sort actresses by hip descending", async () => {
+      const query = `
+    query {
+      actresses(options: { sortBy: "hip", sortOrder: DESC }) {
+        edges { node { name hip } }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const hips = response.body.data.actresses.edges.map((e) => e.node.hip);
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      expect(hips).toEqual([90, 88, 85, null, null]);
+      expect(names).toEqual(["Yuna", "Mio", "Aki", "NoBust", "NoCup"]);
+    });
+
+    it("should sort actresses by birthday ascending", async () => {
+      const query = `
+    query {
+      actresses(options: { sortBy: "birthday", sortOrder: ASC }) {
+        edges { node { name birthday } }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const birthdays = response.body.data.actresses.edges.map(
+        (e) => e.node.birthday
+      );
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      expect(birthdays).toEqual([
+        "1985-12-31",
+        "1990-05-10",
+        "1995-01-01",
+        null,
+        null,
+      ]);
+      expect(names).toEqual(["Yuna", "Mio", "Aki", "NoCup", "NoBust"]);
+    });
+
+    it("should sort actresses by birthday descending", async () => {
+      const query = `
+    query {
+      actresses(options: { sortBy: "birthday", sortOrder: DESC }) {
+        edges { node { name birthday } }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const birthdays = response.body.data.actresses.edges.map(
+        (e) => e.node.birthday
+      );
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      expect(birthdays).toEqual([
+        "1995-01-01",
+        "1990-05-10",
+        "1985-12-31",
+        null,
+        null,
+      ]);
+      expect(names).toEqual(["Aki", "Mio", "Yuna", "NoBust", "NoCup"]);
+    });
+
     it("should support pagination with first and after", async () => {
-      // Get first 2 actresses
       const query = `
       query {
         actresses(options: { first: 2 }) {

@@ -241,10 +241,6 @@ export class ActressService {
       if (options?.after) {
         const prevQb = this.actressRepository.createQueryBuilder("actress");
 
-        if (options?.cup) {
-          prevQb.andWhere("actress.cup = :cup", { cup: options.cup });
-        }
-
         prevQb.andWhere("actress.id <= :afterId", {
           afterId: this.decodeCursor(options.after),
         });
