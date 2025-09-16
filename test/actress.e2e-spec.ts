@@ -518,6 +518,33 @@ describe("Actress Module (e2e)", () => {
       );
     });
 
+    it("should paginate backwards (last) and reverse results, setting hasPreviousPage and hasNextPage correctly", async () => {
+      const query = `
+    query {
+      actresses(options: { last: 2 }) {
+        edges { node { name } }
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+          startCursor
+          endCursor
+        }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const names = response.body.data.actresses.edges.map((e) => e.node.name);
+
+      expect(names).toEqual(["Mio", "Aki"]);
+      expect(response.body.data.actresses.pageInfo.hasPreviousPage).toBe(true);
+      expect(response.body.data.actresses.pageInfo.hasNextPage).toBe(false);
+    });
+
     it("should fetch actress by id", async () => {
       const actress = await dataSource.getRepository(Actress).save({
         name: "Test Actress",
