@@ -178,6 +178,7 @@ export class ActressService {
       const afterId = this.decodeCursor(options.after);
       qb.andWhere("actress.id > :afterId", { afterId });
     }
+
     if (options?.before) {
       const beforeId = this.decodeCursor(options.before);
       qb.andWhere("actress.id < :beforeId", { beforeId });

@@ -53,6 +53,7 @@ describe("Actress Module (e2e)", () => {
           bust: 80,
           waist: 58,
           hip: 85,
+          height: 150,
           birthday: "1995-01-01",
         },
         {
@@ -61,6 +62,7 @@ describe("Actress Module (e2e)", () => {
           bust: 85,
           waist: 60,
           hip: 88,
+          height: 170,
           birthday: "1990-05-10",
         },
         {
@@ -69,6 +71,7 @@ describe("Actress Module (e2e)", () => {
           bust: 90,
           waist: 62,
           hip: 90,
+          height: 160,
           birthday: "1985-12-31",
         },
         {
@@ -190,6 +193,27 @@ describe("Actress Module (e2e)", () => {
       query {
         actresses(options: { hip: 88 }) {
           edges { node { name hip } }
+          totalCount
+        }
+      }
+    `;
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.actresses.edges).toHaveLength(2);
+      expect(response.body.data.actresses.totalCount).toBe(2);
+
+      expect(response.body.data.actresses.edges[0].node.name).toBe("Mio");
+      expect(response.body.data.actresses.edges[1].node.name).toBe("Yuna");
+    });
+
+    it("should filter actresses by height", async () => {
+      const query = `
+      query {
+        actresses(options: { height: 160 }) {
+          edges { node { name height } }
           totalCount
         }
       }
@@ -439,8 +463,8 @@ describe("Actress Module (e2e)", () => {
       );
       const names = response.body.data.actresses.edges.map((e) => e.node.name);
 
-      expect(heights).toEqual([null, null, null, null, null]);
-      expect(names).toEqual(["Aki", "Mio", "Yuna", "NoCup", "NoBust"]);
+      expect(heights).toEqual([150, 160, 170, null, null]);
+      expect(names).toEqual(["Aki", "Yuna", "Mio", "NoCup", "NoBust"]);
     });
 
     it("should sort actresses by height descending", async () => {
@@ -462,8 +486,8 @@ describe("Actress Module (e2e)", () => {
       );
       const names = response.body.data.actresses.edges.map((e) => e.node.name);
 
-      expect(heights).toEqual([null, null, null, null, null]);
-      expect(names).toEqual(["NoBust", "NoCup", "Yuna", "Mio", "Aki"]);
+      expect(heights).toEqual([170, 160, 150, null, null]);
+      expect(names).toEqual(["Mio", "Yuna", "Aki", "NoBust", "NoCup"]);
     });
 
     it("should sort actresses by birthday ascending", async () => {
@@ -589,6 +613,50 @@ describe("Actress Module (e2e)", () => {
       expect(names).toEqual(["Mio", "Aki"]);
       expect(response.body.data.actresses.pageInfo.hasPreviousPage).toBe(true);
       expect(response.body.data.actresses.pageInfo.hasNextPage).toBe(false);
+    });
+
+    it("should return actresses before a given cursor (id)", async () => {
+      // First, get all actresses sorted by id ascending to get a valid cursor
+      const allQuery = `
+    query {
+      actresses(options: { sortBy: "id", sortOrder: ASC }) {
+        edges { cursor node { id name } }
+      }
+    }
+  `;
+      const allResponse = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: allQuery })
+        .expect(200);
+
+      // Get the cursor for the actress with name "Yuna"
+      const yunaEdge = allResponse.body.data.actresses.edges.find(
+        (e) => e.node.name === "Yuna"
+      );
+      expect(yunaEdge).toBeDefined();
+
+      // Query for actresses before Yuna's cursor
+      const beforeQuery = `
+    query($before: String!) {
+      actresses(options: { before: $before, sortBy: "id", sortOrder: ASC }) {
+        edges { node { name } }
+      }
+    }
+  `;
+      const beforeResponse = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: beforeQuery,
+          variables: { before: yunaEdge.cursor },
+        })
+        .expect(200);
+
+      const names = beforeResponse.body.data.actresses.edges.map(
+        (e) => e.node.name
+      );
+
+      // Should return actresses with lower id than Yuna (Aki and Mio, based on seed order)
+      expect(names).toEqual(["Aki", "Mio"]);
     });
 
     it("should fetch actress by id", async () => {
