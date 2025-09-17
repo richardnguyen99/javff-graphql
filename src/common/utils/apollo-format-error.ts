@@ -7,7 +7,7 @@ import {
 import { ApolloError } from "apollo-server-express";
 import { ApolloServerErrorCode } from "@apollo/server/errors";
 import { QueryFailedError } from "typeorm";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, HttpException, HttpStatus } from "@nestjs/common";
 
 export enum CustomErrorCode {
   DUPLICATE_KEY = "DUPLICATE_KEY",
@@ -44,6 +44,22 @@ const __formatTypeORMQueryError = (
       originalError: null,
     };
   }
+
+  return { message, originalError, extensions };
+};
+
+const __formatHttpException = (
+  formattedError: GraphQLFormattedError,
+  error: ApolloError | GraphQLError
+) => {
+  const httpExceptionError = error.originalError as HttpException;
+
+  const message = httpExceptionError.message;
+  const originalError = httpExceptionError.getResponse() as object;
+  const extensions = {
+    code: HttpStatus[httpExceptionError.getStatus()],
+    originalError,
+  };
 
   return { message, originalError, extensions };
 };
@@ -109,6 +125,11 @@ const formatApolloGraphQlError = (
       // such as a database error or from a client request.
       if (error.originalError instanceof QueryFailedError) {
         return __formatTypeORMQueryError(formattedError, error);
+      }
+
+      // Deal with Http Exception such as 404 not found from NestJS resolvers.
+      if (error.originalError instanceof HttpException) {
+        return __formatHttpException(formattedError, error);
       }
 
     // eslint-disable-next-line no-fallthrough
