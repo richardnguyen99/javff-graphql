@@ -347,15 +347,30 @@ describe("ActressService", () => {
     );
   });
 
-  it("delete should remove an actress", async () => {
-    const deleteResultTrue: DeleteResult = { affected: 1, raw: {} };
-    const deleteResultFalse: DeleteResult = { affected: 0, raw: {} };
+  it("delete should remove an actress and return the deleted actress with images", async () => {
+    const actress = {
+      id: 1,
+      name: "Test Actress",
+      images: [{ id: 10, url: "img.jpg", attribute: "main" }],
+    } as unknown as Actress;
 
-    actressRepository.delete.mockResolvedValue(deleteResultTrue);
-    expect(await service.delete(1)).toBe(true);
+    actressRepository.findOne.mockResolvedValueOnce(actress);
+    actressRepository.delete.mockResolvedValue({ affected: 1, raw: {} });
 
-    actressRepository.delete.mockResolvedValue(deleteResultFalse);
-    expect(await service.delete(2)).toBe(false);
+    const result = await service.delete(1);
+
+    expect(actressRepository.findOne).toHaveBeenCalledWith({
+      where: { id: 1 },
+      relations: ["images"],
+    });
+    expect(actressRepository.delete).toHaveBeenCalledWith(1);
+    expect(result).toBe(actress);
+
+    actressRepository.findOne.mockResolvedValueOnce(undefined);
+
+    await expect(service.delete(2)).rejects.toThrow(
+      new NotFoundException("Actress with ID 2 not found")
+    );
   });
 
   it("findAllConnection should return a relay-style connection", async () => {
