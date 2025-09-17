@@ -846,16 +846,30 @@ describe("Actress Module (e2e)", () => {
       });
     });
 
-    it("should delete an actress", async () => {
+    it("should delete an actress and return the deleted actress", async () => {
       const actress = await dataSource.getRepository(Actress).save({
         name: "To Be Deleted",
+        images: [
+          {
+            url: "http://example.com/image.jpg",
+            attribute: "main",
+          },
+        ],
       });
 
       const mutation = `
-        mutation($id: Int!) {
-          deleteActress(id: $id)
+    mutation($id: Int!) {
+      deleteActress(id: $id) {
+        id
+        name
+        images {
+          id
+          url
+          attribute
         }
-      `;
+      }
+    }
+  `;
 
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -865,12 +879,52 @@ describe("Actress Module (e2e)", () => {
         })
         .expect(200);
 
-      expect(response.body.data.deleteActress).toBe(true);
+      expect(response.body.data.deleteActress).toMatchObject({
+        id: actress.id.toString(),
+        name: "To Be Deleted",
+        images: [
+          {
+            url: "http://example.com/image.jpg",
+            attribute: "main",
+          },
+        ],
+      });
 
       const deleted = await dataSource.getRepository(Actress).findOne({
         where: { id: actress.id },
       });
+
       expect(deleted).toBeNull();
+    });
+
+    it("should throw NotFoundException when trying to delete a non-existent actress", async () => {
+      const mutation = `
+    mutation($id: Int!) {
+      deleteActress(id: $id) {
+        id
+        name
+        images {
+          id
+          url
+          attribute
+        }
+      }
+    }
+  `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: mutation,
+          variables: { id: 99999 },
+        })
+        .expect(200);
+
+      expect(response.body.data).toBeNull();
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.errors[0].message).toBe(
+        "Actress with ID 99999 not found"
+      );
     });
 
     it("should create a new actress with images", async () => {
