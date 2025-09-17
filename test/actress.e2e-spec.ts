@@ -846,6 +846,35 @@ describe("Actress Module (e2e)", () => {
       });
     });
 
+    it("should return a formatted NotFoundException when updating a non-existent actress", async () => {
+      const mutation = `
+    mutation($id: Int!, $input: UpdateActressInput!) {
+      updateActress(id: $id, input: $input) {
+        id
+        name
+      }
+    }
+  `;
+      const input = { name: "Does Not Exist" };
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: mutation,
+          variables: { id: 99999, input },
+        })
+        .expect(200);
+
+      expect(response.body.data).toBeNull();
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.errors[0].message).toBe(
+        "Actress with ID 99999 not found"
+      );
+      expect(response.body.errors[0].extensions).toBeDefined();
+      expect(response.body.errors[0].extensions.code).toBe("NOT_FOUND");
+      expect(response.body.errors[0].extensions.originalError).toBeDefined();
+    });
+
     it("should delete an actress and return the deleted actress", async () => {
       const actress = await dataSource.getRepository(Actress).save({
         name: "To Be Deleted",
@@ -925,6 +954,9 @@ describe("Actress Module (e2e)", () => {
       expect(response.body.errors[0].message).toBe(
         "Actress with ID 99999 not found"
       );
+      expect(response.body.errors[0].extensions).toBeDefined();
+      expect(response.body.errors[0].extensions.code).toBe("NOT_FOUND");
+      expect(response.body.errors[0].extensions.originalError).toBeDefined();
     });
 
     it("should create a new actress with images", async () => {
@@ -2093,6 +2125,9 @@ describe("Actress Module (e2e)", () => {
       expect(response.body.errors[0].message).toEqual(
         "Actress with ID 99999 not found"
       );
+      expect(response.body.errors[0].extensions).toBeDefined();
+      expect(response.body.errors[0].extensions.code).toBe("NOT_FOUND");
+      expect(response.body.errors[0].extensions.originalError).toBeDefined();
     });
 
     it("should update an existing actress image", async () => {
@@ -2182,6 +2217,9 @@ describe("Actress Module (e2e)", () => {
       expect(response.body.errors[0].message).toEqual(
         `Image with ID ${input.id} not found for actress ${input.actressId}`
       );
+      expect(response.body.errors[0].extensions).toBeDefined();
+      expect(response.body.errors[0].extensions.code).toBe("NOT_FOUND");
+      expect(response.body.errors[0].extensions.originalError).toBeDefined();
     });
 
     it("should remove an existing actress image", async () => {
@@ -2252,6 +2290,9 @@ describe("Actress Module (e2e)", () => {
       expect(response.body.errors[0].message).toEqual(
         `Image with ID ${input.id} not found for actress ${input.actressId}`
       );
+      expect(response.body.errors[0].extensions).toBeDefined();
+      expect(response.body.errors[0].extensions.code).toBe("NOT_FOUND");
+      expect(response.body.errors[0].extensions.originalError).toBeDefined();
     });
   });
 
