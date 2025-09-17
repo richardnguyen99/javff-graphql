@@ -169,6 +169,53 @@ type UpdateActressOutput {
   prefectures: String
 }
 
+type DeleteActressOutput {
+  """Unique identifier for the actress"""
+  id: ID!
+
+  """The actress's name"""
+  name: String!
+
+  """DMM ID (unique identifier, optional)"""
+  dmmId: String
+
+  """Display name (optional)"""
+  displayName: String
+
+  """Ruby (kana reading, optional)"""
+  ruby: String
+
+  """Bust size in cm (optional)"""
+  bust: Float
+
+  """Cup size (optional)"""
+  cup: String
+
+  """Waist size in cm (optional)"""
+  waist: Float
+
+  """Hip size in cm (optional)"""
+  hip: Float
+
+  """Height in cm (optional)"""
+  height: Float
+
+  """Birthday (ISO 8601 date, optional)"""
+  birthday: DateTime
+
+  """Blood type (optional)"""
+  bloodType: String
+
+  """Hobby (optional)"""
+  hobby: String
+
+  """Prefectures (optional)"""
+  prefectures: String
+
+  """List of actress images"""
+  images: [ActressImage!]
+}
+
 """DateTime custom scalar type to work with ISO 8601 date strings"""
 scalar DateTime
 
@@ -256,8 +303,10 @@ type Mutation {
   """Remove an image from an actress. Image id is required."""
   removeActressImage(input: RemoveActressImageInput!): Boolean!
 
-  """Delete an actress record by ID."""
-  deleteActress(id: Int!): Boolean!
+  """
+  Delete an actress record by ID and return the deleted actress and images.
+  """
+  deleteActress(id: Int!): DeleteActressOutput!
   createVideo(code: String!, title: String!, coverImage: String, releaseDate: String): Video!
   createSeries(name: String!): Series!
   createMaker(name: String!): Maker!

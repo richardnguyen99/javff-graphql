@@ -6,17 +6,18 @@ import { Actress } from "src/v1/actress/actress.entity";
 import { ActressImage } from "src/v1/actress/actress-image.entity";
 import { CreateActressInput } from "src/v1/actress/dto/create-actress.input";
 import { UpdateActressInput } from "src/v1/actress/dto/update-actress.input";
-import { ActressQueryOptionsInput } from "./dto/actress-query-options.input";
+import { ActressQueryOptionsInput } from "src/v1/actress/dto/actress-query-options.input";
 import {
   ActressConnection,
   ActressEdge,
   PageInfo,
-} from "./dto/actress-connection.output";
+} from "src/v1/actress/dto/actress-connection.output";
 import {
   AddActressImageInput,
   RemoveActressImageInput,
   UpdateActressImageInput,
-} from "./dto/update-actress-image.input";
+} from "src/v1/actress/dto/update-actress-image.input";
+import { DeleteActressOutput } from "src/v1/actress/dto/delete-actress.output";
 
 @Injectable()
 export class ActressService {
@@ -119,9 +120,19 @@ export class ActressService {
     });
   }
 
-  async delete(id: number): Promise<boolean> {
-    const result = await this.actressRepository.delete(id);
-    return result.affected > 0;
+  async delete(id: number): Promise<DeleteActressOutput> {
+    const actress = await this.actressRepository.findOne({
+      where: { id },
+      relations: ["images"],
+    });
+
+    if (!actress) {
+      throw new NotFoundException(`Actress with ID ${id} not found`);
+    }
+
+    await this.actressRepository.delete(id);
+
+    return actress;
   }
 
   private decodeCursor(cursor: string): number {

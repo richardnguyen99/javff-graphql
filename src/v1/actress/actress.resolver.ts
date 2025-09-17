@@ -14,6 +14,7 @@ import {
 import { ActressImage } from "src/v1/actress/actress-image.entity";
 import { ActressImageOutput } from "src/v1/actress/dto/update-actress-image.output";
 import { UpdateActressOutput } from "src/v1/actress/dto/update-actress.output";
+import { DeleteActressOutput } from "./dto/delete-actress.output";
 
 @Resolver(() => Actress)
 export class ActressResolver {
@@ -97,10 +98,13 @@ export class ActressResolver {
     return this.actressService.removeActressImage(input);
   }
 
-  @Mutation(() => Boolean, {
-    description: "Delete an actress record by ID.",
+  @Mutation(() => DeleteActressOutput, {
+    description:
+      "Delete an actress record by ID and return the deleted actress and images.",
   })
-  deleteActress(@Args("id", { type: () => Int }) id: number) {
+  async deleteActress(
+    @Args("id", { type: () => Int }) id: number
+  ): Promise<DeleteActressOutput> {
     return this.actressService.delete(id);
   }
 }
