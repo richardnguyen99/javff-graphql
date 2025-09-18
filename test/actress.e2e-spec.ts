@@ -20,6 +20,8 @@ describe("Actress Module (e2e)", () => {
             transform: true,
           })
         );
+
+        appInstance.useLogger(false);
       },
     });
 
@@ -2321,111 +2323,270 @@ describe("Actress Module (e2e)", () => {
 
   describe("Database Constraints", () => {
     it("should enforce unique dmmId constraint", async () => {
-      await dataSource.getRepository(Actress).save({
-        name: "First Actress",
-        dmmId: "duplicate123",
-      });
+      const mutation = `#graphql
+      mutation($input: CreateActressInput!) {
+        createActress(input: $input) { id name dmmId }
+      }
+    `;
 
-      await expect(
-        dataSource.getRepository(Actress).save({
-          name: "Second Actress",
-          dmmId: "duplicate123",
-        })
-      ).rejects.toThrow();
-    });
+      const input1 = { name: "First Actress", dmmId: "duplicate123" };
+      const input2 = { name: "Second Actress", dmmId: "duplicate123" };
 
-    it("should allow null dmmId for multiple actresses", async () => {
-      await dataSource.getRepository(Actress).save({
-        name: "First Actress",
-        dmmId: null,
-      });
+      await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input: input1 } })
+        .expect(200);
 
-      await dataSource.getRepository(Actress).save({
-        name: "Second Actress",
-        dmmId: null,
-      });
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input: input2 } })
+        .expect(200);
 
-      const count = await dataSource.getRepository(Actress).count();
-      expect(count).toBe(2);
-    });
-
-    it("should allow different attributes for the same actress", async () => {
-      const actress = await dataSource.getRepository(Actress).save({
-        name: "Compound Index Actress",
-      });
-
-      await dataSource.getRepository(ActressImage).save({
-        url: "http://example.com/small.jpg",
-        attribute: "small",
-        actress,
-      });
-
-      await dataSource.getRepository(ActressImage).save({
-        url: "http://example.com/large.jpg",
-        attribute: "large",
-        actress,
-      });
-
-      const images = await dataSource.getRepository(ActressImage).find({
-        where: { actress: { id: actress.id } },
-      });
-      expect(images).toHaveLength(2);
-      expect(images.map((i) => i.attribute)).toEqual(
-        expect.arrayContaining(["small", "large"])
+      expect(response.body.data).toBeNull();
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.errors[0].message.toLowerCase()).toContain(
+        "duplicate"
       );
     });
 
-    it("should not allow duplicate attribute for the same actress", async () => {
-      const actress = await dataSource.getRepository(Actress).save({
-        name: "Unique Attribute Actress",
-      });
+    it("should allow null dmmId for multiple actresses", async () => {
+      const mutation = `#graphql
+      mutation($input: CreateActressInput!) {
+        createActress(input: $input) { id name dmmId }
+      }
+    `;
 
-      await dataSource.getRepository(ActressImage).save({
-        url: "http://example.com/first.jpg",
-        attribute: "profile",
-        actress,
-      });
+      const input1 = { name: "First Actress", dmmId: null };
+      const input2 = { name: "Second Actress", dmmId: null };
 
-      await expect(
-        dataSource.getRepository(ActressImage).save({
-          url: "http://example.com/second.jpg",
-          attribute: "profile",
-          actress,
+      await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input: input1 } })
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: mutation, variables: { input: input2 } })
+        .expect(200);
+
+      const all = await dataSource.getRepository(Actress).find();
+      expect(all.length).toBe(2);
+      expect(all[0].dmmId).toBeNull();
+      expect(all[1].dmmId).toBeNull();
+    });
+
+    it("should allow different attributes for the same actress", async () => {
+      const createActressMutation = `#graphql
+    mutation($input: CreateActressInput!) {
+      createActress(input: $input) { id }
+    }
+  `;
+      const actressRes = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: createActressMutation,
+          variables: { input: { name: "Compound Index Actress" } },
         })
-      ).rejects.toThrow();
+        .expect(200);
+
+      const actressId = parseInt(actressRes.body.data.createActress.id);
+
+      const addImageMutation = `#graphql
+    mutation($input: AddActressImageInput!) {
+      addActressImage(input: $input) { id url attribute }
+    }
+  `;
+      await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: addImageMutation,
+          variables: {
+            input: {
+              actressId,
+              url: "http://example.com/small.jpg",
+              attribute: "small",
+            },
+          },
+        })
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: addImageMutation,
+          variables: {
+            input: {
+              actressId,
+              url: "http://example.com/large.jpg",
+              attribute: "large",
+            },
+          },
+        })
+        .expect(200);
+
+      const imagesQuery = `#graphql
+    query($id: Int!) {
+      actress(id: $id) {
+        images { url attribute }
+      }
+    }
+  `;
+      const imagesRes = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: imagesQuery,
+          variables: { id: actressId },
+        })
+        .expect(200);
+
+      const attrs = imagesRes.body.data.actress.images.map(
+        (img) => img.attribute
+      );
+
+      expect(attrs).toEqual(expect.arrayContaining(["small", "large"]));
+    });
+
+    it("should not allow duplicate attribute for the same actress", async () => {
+      const createActressMutation = `#graphql
+    mutation($input: CreateActressInput!) {
+      createActress(input: $input) { id }
+    }
+  `;
+
+      const actressRes = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: createActressMutation,
+          variables: { input: { name: "Unique Attribute Actress" } },
+        })
+        .expect(200);
+
+      const actressId = parseInt(actressRes.body.data.createActress.id);
+      const addImageMutation = `#graphql
+    mutation($input: AddActressImageInput!) {
+      addActressImage(input: $input) { id url attribute }
+    }
+  `;
+
+      await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: addImageMutation,
+          variables: {
+            input: {
+              actressId,
+              url: "http://example.com/first.jpg",
+              attribute: "profile",
+            },
+          },
+        })
+        .expect(200);
+
+      const dupRes = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: addImageMutation,
+          variables: {
+            input: {
+              actressId,
+              url: "http://example.com/second.jpg",
+              attribute: "profile",
+            },
+          },
+        })
+        .expect(200);
+
+      expect(dupRes.body.data).toBeNull();
+      expect(dupRes.body.errors).toBeDefined();
+      expect(dupRes.body.errors[0].message.toLowerCase()).toContain(
+        "key actressid, attribute=164, profile already exists."
+      );
     });
 
     it("should allow the same attribute for different actresses", async () => {
-      const actress1 = await dataSource.getRepository(Actress).save({
-        name: "Actress One",
-      });
-      const actress2 = await dataSource.getRepository(Actress).save({
-        name: "Actress Two",
-      });
+      const createActressMutation = `#graphql
+    mutation($input: CreateActressInput!) {
+      createActress(input: $input) { id }
+    }
+  `;
+      const res1 = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: createActressMutation,
+          variables: { input: { name: "Actress One" } },
+        })
+        .expect(200);
 
-      await dataSource.getRepository(ActressImage).save({
-        url: "http://example.com/one.jpg",
-        attribute: "cover",
-        actress: actress1,
-      });
+      const res2 = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: createActressMutation,
+          variables: { input: { name: "Actress Two" } },
+        })
+        .expect(200);
 
-      await dataSource.getRepository(ActressImage).save({
-        url: "http://example.com/two.jpg",
-        attribute: "cover",
-        actress: actress2,
-      });
+      const id1 = parseInt(res1.body.data.createActress.id);
+      const id2 = parseInt(res2.body.data.createActress.id);
 
-      const images1 = await dataSource.getRepository(ActressImage).find({
-        where: { actress: { id: actress1.id } },
-      });
-      const images2 = await dataSource.getRepository(ActressImage).find({
-        where: { actress: { id: actress2.id } },
-      });
+      const addImageMutation = `#graphql
+    mutation($input: AddActressImageInput!) {
+      addActressImage(input: $input) { id url attribute }
+    }
+  `;
 
-      expect(images1).toHaveLength(1);
-      expect(images2).toHaveLength(1);
-      expect(images1[0].attribute).toBe("cover");
-      expect(images2[0].attribute).toBe("cover");
+      await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: addImageMutation,
+          variables: {
+            input: {
+              actressId: id1,
+              url: "http://example.com/one.jpg",
+              attribute: "cover",
+            },
+          },
+        })
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: addImageMutation,
+          variables: {
+            input: {
+              actressId: id2,
+              url: "http://example.com/two.jpg",
+              attribute: "cover",
+            },
+          },
+        })
+        .expect(200);
+
+      const imagesQuery = `#graphql
+    query($id: Int!) {
+      actress(id: $id) {
+        images { url attribute }
+      }
+    }
+  `;
+      const images1 = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: imagesQuery,
+          variables: { id: id1 },
+        })
+        .expect(200);
+
+      const images2 = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({
+          query: imagesQuery,
+          variables: { id: id2 },
+        })
+        .expect(200);
+
+      expect(images1.body.data.actress.images[0].attribute).toBe("cover");
+      expect(images2.body.data.actress.images[0].attribute).toBe("cover");
     });
   });
 });
