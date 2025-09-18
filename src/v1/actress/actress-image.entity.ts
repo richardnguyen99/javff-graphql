@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  Index,
 } from "typeorm";
 import { Field, ID, ObjectType } from "@nestjs/graphql";
 
@@ -11,6 +12,7 @@ import { Actress } from "./actress.entity";
 
 @ObjectType()
 @Entity()
+@Index("idx_actress_image_unique", ["actress", "attribute"], { unique: true })
 export class ActressImage {
   @Field(() => ID, { description: "Unique identifier for the actress image" })
   @PrimaryGeneratedColumn()

@@ -18,7 +18,10 @@ export class DatabaseConfigService {
         "DB_AUTO_LOAD_ENTITIES",
         true
       ),
-      synchronize: this.configService.get<boolean>("DB_SYNCHRONIZE", true),
+      synchronize: false, // Disable synchronize
+      migrationsRun: this.configService.get<boolean>("DB_MIGRATIONS_RUN", true),
+      migrations: [__dirname + "/../migrations/*{.ts,.js}"],
+      migrationsTableName: "migrations",
     };
   }
 }
