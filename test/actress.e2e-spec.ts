@@ -2348,5 +2348,84 @@ describe("Actress Module (e2e)", () => {
       const count = await dataSource.getRepository(Actress).count();
       expect(count).toBe(2);
     });
+
+    it("should allow different attributes for the same actress", async () => {
+      const actress = await dataSource.getRepository(Actress).save({
+        name: "Compound Index Actress",
+      });
+
+      await dataSource.getRepository(ActressImage).save({
+        url: "http://example.com/small.jpg",
+        attribute: "small",
+        actress,
+      });
+
+      await dataSource.getRepository(ActressImage).save({
+        url: "http://example.com/large.jpg",
+        attribute: "large",
+        actress,
+      });
+
+      const images = await dataSource.getRepository(ActressImage).find({
+        where: { actress: { id: actress.id } },
+      });
+      expect(images).toHaveLength(2);
+      expect(images.map((i) => i.attribute)).toEqual(
+        expect.arrayContaining(["small", "large"])
+      );
+    });
+
+    it("should not allow duplicate attribute for the same actress", async () => {
+      const actress = await dataSource.getRepository(Actress).save({
+        name: "Unique Attribute Actress",
+      });
+
+      await dataSource.getRepository(ActressImage).save({
+        url: "http://example.com/first.jpg",
+        attribute: "profile",
+        actress,
+      });
+
+      await expect(
+        dataSource.getRepository(ActressImage).save({
+          url: "http://example.com/second.jpg",
+          attribute: "profile",
+          actress,
+        })
+      ).rejects.toThrow();
+    });
+
+    it("should allow the same attribute for different actresses", async () => {
+      const actress1 = await dataSource.getRepository(Actress).save({
+        name: "Actress One",
+      });
+      const actress2 = await dataSource.getRepository(Actress).save({
+        name: "Actress Two",
+      });
+
+      await dataSource.getRepository(ActressImage).save({
+        url: "http://example.com/one.jpg",
+        attribute: "cover",
+        actress: actress1,
+      });
+
+      await dataSource.getRepository(ActressImage).save({
+        url: "http://example.com/two.jpg",
+        attribute: "cover",
+        actress: actress2,
+      });
+
+      const images1 = await dataSource.getRepository(ActressImage).find({
+        where: { actress: { id: actress1.id } },
+      });
+      const images2 = await dataSource.getRepository(ActressImage).find({
+        where: { actress: { id: actress2.id } },
+      });
+
+      expect(images1).toHaveLength(1);
+      expect(images2).toHaveLength(1);
+      expect(images1[0].attribute).toBe("cover");
+      expect(images2[0].attribute).toBe("cover");
+    });
   });
 });
