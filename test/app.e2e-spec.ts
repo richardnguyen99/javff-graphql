@@ -8,6 +8,7 @@ describe("AppController (e2e)", () => {
 
   beforeAll(async () => {
     await TestSetup.setupTestContainer();
+
     app = await TestSetup.setupTestApp({
       onInit: (appInstance) => {
         appInstance.useGlobalPipes(new ValidationPipe({ transform: true }));

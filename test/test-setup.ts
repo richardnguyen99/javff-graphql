@@ -24,12 +24,12 @@ type SetupTestAppLifeCycle = {
 };
 
 export class TestSetup {
-  private static container: StartedPostgreSqlContainer;
-  private static dataSource: DataSource;
-  public static app: INestApplication;
+  private static _container: StartedPostgreSqlContainer;
+  private static _dataSource: DataSource;
+  public static _app: INestApplication;
 
   static async setupTestContainer(): Promise<void> {
-    this.container = await new PostgreSqlContainer("postgres:15")
+    this._container = await new PostgreSqlContainer("postgres:15")
       .withDatabase("test_db")
       .withUsername("test_user")
       .withPassword("test_password")
@@ -37,7 +37,7 @@ export class TestSetup {
       .start();
 
     console.log(
-      `PostgreSQL container started on port: ${this.container.getMappedPort(5432)}`
+      `PostgreSQL container started on port: ${this._container.getMappedPort(5432)}`
     );
   }
 
@@ -48,11 +48,11 @@ export class TestSetup {
       imports: [
         TypeOrmModule.forRoot({
           type: "postgres",
-          host: this.container.getHost(),
-          port: this.container.getMappedPort(5432),
-          username: this.container.getUsername(),
-          password: this.container.getPassword(),
-          database: this.container.getDatabase(),
+          host: this._container.getHost(),
+          port: this._container.getMappedPort(5432),
+          username: this._container.getUsername(),
+          password: this._container.getPassword(),
+          database: this._container.getDatabase(),
           entities: [Actress, ActressImage, Video, Series, Maker],
           synchronize: true,
           logging: false,
@@ -72,48 +72,48 @@ export class TestSetup {
       providers: [DateTimeScalar],
     }).compile();
 
-    this.app = moduleFixture.createNestApplication();
+    this._app = moduleFixture.createNestApplication();
 
-    onInit?.(this.app);
+    onInit?.(this._app);
+    await this._app.init();
 
-    await this.app.init();
-
-    return this.app;
+    return this._app;
   }
 
   static async getDataSource(): Promise<DataSource> {
-    if (!this.dataSource) {
-      this.dataSource = new DataSource({
+    if (!this._dataSource) {
+      this._dataSource = new DataSource({
         type: "postgres",
-        host: this.container.getHost(),
-        port: this.container.getMappedPort(5432),
-        username: this.container.getUsername(),
-        password: this.container.getPassword(),
-        database: this.container.getDatabase(),
+        host: this._container.getHost(),
+        port: this._container.getMappedPort(5432),
+        username: this._container.getUsername(),
+        password: this._container.getPassword(),
+        database: this._container.getDatabase(),
         entities: [Actress, ActressImage, Video, Series, Maker],
-        synchronize: true,
+        synchronize: false,
       });
 
-      await this.dataSource.initialize();
+      await this._dataSource.initialize();
     }
-    return this.dataSource;
+
+    return this._dataSource;
   }
 
   static async cleanup(): Promise<void> {
-    if (this.app) {
-      await this.app.close();
+    if (this._app) {
+      await this._app.close();
     }
 
-    if (this.dataSource && this.dataSource.isInitialized) {
-      await this.dataSource.destroy();
+    if (this._dataSource && this._dataSource.isInitialized) {
+      await this._dataSource.destroy();
     }
 
-    if (this.container) {
-      await this.container.stop();
+    if (this._container) {
+      await this._container.stop();
     }
   }
 
   static getContainer(): StartedPostgreSqlContainer {
-    return this.container;
+    return this._container;
   }
 }

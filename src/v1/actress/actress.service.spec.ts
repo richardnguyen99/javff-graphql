@@ -1,7 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { DeleteResult } from "typeorm";
 
 import { ActressService } from "src/v1/actress/actress.service";
 import { Actress } from "src/v1/actress/actress.entity";

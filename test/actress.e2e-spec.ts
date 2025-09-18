@@ -94,7 +94,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fetch all actresses", async () => {
-      const query = `
+      const query = `#graphql
         query {
           actresses {
             totalCount
@@ -127,7 +127,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should filter actresses by cup", async () => {
-      const query = `
+      const query = `#graphql
       query {
         actresses(options: { cup: "C" }) {
           edges { node { name cup } }
@@ -149,7 +149,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should filter actresses by bust", async () => {
-      const query = `
+      const query = `#graphql
       query {
         actresses(options: { bust: 85 }) {
           edges { node { name bust } }
@@ -169,7 +169,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should filter actresses by waist", async () => {
-      const query = `
+      const query = `#graphql
       query {
         actresses(options: { waist: 60 }) {
           edges { node { name waist } }
@@ -189,7 +189,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should filter actresses by hip", async () => {
-      const query = `
+      const query = `#graphql
       query {
         actresses(options: { hip: 88 }) {
           edges { node { name hip } }
@@ -197,6 +197,7 @@ describe("Actress Module (e2e)", () => {
         }
       }
     `;
+
       const response = await request(app.getHttpServer())
         .post("/graphql")
         .send({ query })
@@ -204,13 +205,12 @@ describe("Actress Module (e2e)", () => {
 
       expect(response.body.data.actresses.edges).toHaveLength(2);
       expect(response.body.data.actresses.totalCount).toBe(2);
-
       expect(response.body.data.actresses.edges[0].node.name).toBe("Mio");
       expect(response.body.data.actresses.edges[1].node.name).toBe("Yuna");
     });
 
     it("should filter actresses by height", async () => {
-      const query = `
+      const query = `#graphql
       query {
         actresses(options: { height: 160 }) {
           edges { node { name height } }
@@ -218,6 +218,7 @@ describe("Actress Module (e2e)", () => {
         }
       }
     `;
+
       const response = await request(app.getHttpServer())
         .post("/graphql")
         .send({ query })
@@ -225,13 +226,12 @@ describe("Actress Module (e2e)", () => {
 
       expect(response.body.data.actresses.edges).toHaveLength(2);
       expect(response.body.data.actresses.totalCount).toBe(2);
-
       expect(response.body.data.actresses.edges[0].node.name).toBe("Mio");
       expect(response.body.data.actresses.edges[1].node.name).toBe("Yuna");
     });
 
     it("should filter actresses by year (age)", async () => {
-      const query = `
+      const query = `#graphql
       query {
         actresses(options: { year: 1990 }) {
           edges { node { name birthday } }
@@ -251,7 +251,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should filter actresses by multiple options", async () => {
-      const query = `
+      const query = `#graphql
       query {
         actresses(options: { cup: "D", bust: 90, waist: 62, hip: 90, year: 1985 }) {
           edges { node { name cup bust waist hip birthday } }
@@ -270,7 +270,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should sort actresses by cup ascending", async () => {
-      const query = `
+      const query = `#graphql
     query {
       actresses(options: { sortBy: "cup", sortOrder: ASC }) {
         edges { node { name cup } }
@@ -291,7 +291,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should sort actresses by cup descending", async () => {
-      const query = `
+      const query = `#graphql
     query {
       actresses(options: { sortBy: "cup", sortOrder: DESC }) {
         edges { node { name cup } }
@@ -312,7 +312,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should sort actresses by bust ascending", async () => {
-      const query = `
+      const query = `#graphql
     query {
       actresses(options: { sortBy: "bust", sortOrder: ASC }) {
         edges { node { name bust } }
@@ -328,13 +328,12 @@ describe("Actress Module (e2e)", () => {
       const busts = response.body.data.actresses.edges.map((e) => e.node.bust);
       const names = response.body.data.actresses.edges.map((e) => e.node.name);
 
-      // Should be sorted: 80, 85, 90, null, null (nulls last)
       expect(busts).toEqual([80, 85, 90, null, null]);
       expect(names).toEqual(["Aki", "Mio", "Yuna", "NoCup", "NoBust"]);
     });
 
     it("should sort actresses by bust descending", async () => {
-      const query = `
+      const query = `#graphql
     query {
       actresses(options: { sortBy: "bust", sortOrder: DESC }) {
         edges { node { name bust } }
@@ -350,13 +349,12 @@ describe("Actress Module (e2e)", () => {
       const busts = response.body.data.actresses.edges.map((e) => e.node.bust);
       const names = response.body.data.actresses.edges.map((e) => e.node.name);
 
-      // Should be sorted: 90, 85, 80, null, null (nulls last)
       expect(busts).toEqual([90, 85, 80, null, null]);
       expect(names).toEqual(["Yuna", "Mio", "Aki", "NoBust", "NoCup"]);
     });
 
     it("should sort actresses by waist ascending", async () => {
-      const query = `
+      const query = `#graphql
     query {
       actresses(options: { sortBy: "waist", sortOrder: ASC }) {
         edges { node { name waist } }
@@ -374,13 +372,12 @@ describe("Actress Module (e2e)", () => {
       );
       const names = response.body.data.actresses.edges.map((e) => e.node.name);
 
-      // Should be sorted: 58, 60, 62, null, null (nulls last)
       expect(waists).toEqual([58, 60, 62, null, null]);
       expect(names).toEqual(["Aki", "Mio", "Yuna", "NoCup", "NoBust"]);
     });
 
     it("should sort actresses by waist descending", async () => {
-      const query = `
+      const query = `#graphql
     query {
       actresses(options: { sortBy: "waist", sortOrder: DESC }) {
         edges { node { name waist } }
@@ -403,7 +400,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should sort actresses by hip ascending", async () => {
-      const query = `
+      const query = `#graphql
     query {
       actresses(options: { sortBy: "hip", sortOrder: ASC }) {
         edges { node { name hip } }
@@ -424,7 +421,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should sort actresses by hip descending", async () => {
-      const query = `
+      const query = `#graphql
     query {
       actresses(options: { sortBy: "hip", sortOrder: DESC }) {
         edges { node { name hip } }
@@ -445,7 +442,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should sort actresses by height ascending", async () => {
-      const query = `
+      const query = `#graphql
     query {
       actresses(options: { sortBy: "height", sortOrder: ASC }) {
         edges { node { name height } }
@@ -468,13 +465,13 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should sort actresses by height descending", async () => {
-      const query = `
-    query {
-      actresses(options: { sortBy: "height", sortOrder: DESC }) {
-        edges { node { name height } }
-      }
-    }
-  `;
+      const query = `#graphql
+        query {
+          actresses(options: { sortBy: "height", sortOrder: DESC }) {
+            edges { node { name height } }
+          }
+        }
+      `;
 
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -491,7 +488,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should sort actresses by birthday ascending", async () => {
-      const query = `
+      const query = `#graphql
     query {
       actresses(options: { sortBy: "birthday", sortOrder: ASC }) {
         edges { node { name birthday } }
@@ -520,7 +517,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should sort actresses by birthday descending", async () => {
-      const query = `
+      const query = `#graphql
     query {
       actresses(options: { sortBy: "birthday", sortOrder: DESC }) {
         edges { node { name birthday } }
@@ -549,7 +546,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should support pagination with first and after", async () => {
-      const query = `
+      const query = `#graphql
       query {
         actresses(options: { first: 2 }) {
           edges { cursor node { name } }
@@ -565,9 +562,8 @@ describe("Actress Module (e2e)", () => {
       expect(response.body.data.actresses.edges).toHaveLength(2);
       expect(response.body.data.actresses.pageInfo.hasNextPage).toBe(true);
 
-      // Use endCursor as after for next page
       const endCursor = response.body.data.actresses.pageInfo.endCursor;
-      const nextQuery = `
+      const nextQuery = `#graphql
       query {
         actresses(options: { first: 2, after: "${endCursor}" }) {
           edges { node { name } }
@@ -589,7 +585,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should paginate backwards (last) and reverse results, setting hasPreviousPage and hasNextPage correctly", async () => {
-      const query = `
+      const query = `#graphql
     query {
       actresses(options: { last: 2 }) {
         edges { node { name } }
@@ -616,8 +612,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should return actresses before a given cursor (id)", async () => {
-      // First, get all actresses sorted by id ascending to get a valid cursor
-      const allQuery = `
+      const allQuery = `#graphql
     query {
       actresses(options: { sortBy: "id", sortOrder: ASC }) {
         edges { cursor node { id name } }
@@ -629,14 +624,12 @@ describe("Actress Module (e2e)", () => {
         .send({ query: allQuery })
         .expect(200);
 
-      // Get the cursor for the actress with name "Yuna"
       const yunaEdge = allResponse.body.data.actresses.edges.find(
         (e) => e.node.name === "Yuna"
       );
       expect(yunaEdge).toBeDefined();
 
-      // Query for actresses before Yuna's cursor
-      const beforeQuery = `
+      const beforeQuery = `#graphql
     query($before: String!) {
       actresses(options: { before: $before, sortBy: "id", sortOrder: ASC }) {
         edges { node { name } }
@@ -655,7 +648,6 @@ describe("Actress Module (e2e)", () => {
         (e) => e.node.name
       );
 
-      // Should return actresses with lower id than Yuna (Aki and Mio, based on seed order)
       expect(names).toEqual(["Aki", "Mio"]);
     });
 
@@ -668,7 +660,7 @@ describe("Actress Module (e2e)", () => {
         hip: 88.0,
       });
 
-      const query = `
+      const query = `#graphql
         query($id: Int!) {
           actress(id: $id) {
             id
@@ -706,7 +698,7 @@ describe("Actress Module (e2e)", () => {
         { name: "Rina Ishihara", displayName: "Rina Ishihara" },
       ]);
 
-      const query = `
+      const query = `#graphql
         query($name: String!) {
           searchActressesByName(name: $name) {
             id
@@ -736,7 +728,7 @@ describe("Actress Module (e2e)", () => {
         dmmId: "unique123",
       });
 
-      const query = `
+      const query = `#graphql
         query($dmmId: String!) {
           actressByDmmId(dmmId: $dmmId) {
             id
@@ -763,7 +755,7 @@ describe("Actress Module (e2e)", () => {
 
   describe("GraphQL Mutations", () => {
     it("should create a new actress", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) {
             id
@@ -816,7 +808,7 @@ describe("Actress Module (e2e)", () => {
         displayName: "Original Display",
       });
 
-      const mutation = `
+      const mutation = `#graphql
         mutation($id: Int!, $input: UpdateActressInput!) {
           updateActress(id: $id, input: $input) {
             id
@@ -847,7 +839,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should return a formatted NotFoundException when updating a non-existent actress", async () => {
-      const mutation = `
+      const mutation = `#graphql
     mutation($id: Int!, $input: UpdateActressInput!) {
       updateActress(id: $id, input: $input) {
         id
@@ -886,7 +878,7 @@ describe("Actress Module (e2e)", () => {
         ],
       });
 
-      const mutation = `
+      const mutation = `#graphql
     mutation($id: Int!) {
       deleteActress(id: $id) {
         id
@@ -927,7 +919,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should throw NotFoundException when trying to delete a non-existent actress", async () => {
-      const mutation = `
+      const mutation = `#graphql
     mutation($id: Int!) {
       deleteActress(id: $id) {
         id
@@ -960,7 +952,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should create a new actress with images", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) {
             id
@@ -1022,7 +1014,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if name is missing", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) {
             id
@@ -1048,7 +1040,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if name is a number", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) {
             id
@@ -1075,7 +1067,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if name is a blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) {
             id
@@ -1102,7 +1094,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if bust is a string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) {
             id
@@ -1127,11 +1119,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if dmmId is a blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", dmmId: "   " };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1146,11 +1139,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if dmmId is a number", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", dmmId: 12345 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1165,11 +1159,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if displayName is a blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", displayName: "   " };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1184,11 +1179,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if displayName is a number", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", displayName: 12345 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1203,11 +1199,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should pass if displayName is a valid non-blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id displayName }
         }
       `;
+
       const input = { name: "Test", displayName: "Valid Name" };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1221,11 +1218,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if ruby is a blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", ruby: "   " };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1240,11 +1238,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if ruby is a number", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", ruby: 12345 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1259,11 +1258,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should pass if ruby is a valid non-blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id ruby }
         }
       `;
+
       const input = { name: "Test", ruby: "ルビー" };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1275,11 +1275,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if bust is a string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", bust: "not-a-number" };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1294,11 +1295,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if bust is less than 1", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", bust: 0 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1313,11 +1315,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if bust has more than 2 decimal places", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", bust: 88.123 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1332,11 +1335,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should pass if bust is a valid number", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id bust }
         }
       `;
+
       const input = { name: "Test", bust: 88.12 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1348,11 +1352,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if cup is a blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", cup: "   " };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1367,11 +1372,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if cup is a number", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", cup: 123 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1386,11 +1392,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should pass if cup is a valid non-blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id cup }
         }
       `;
+
       const input = { name: "Test", cup: "D" };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1402,11 +1409,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if waist is a string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", waist: "not-a-number" };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1421,11 +1429,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if waist is less than 1", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", waist: 0 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1440,11 +1449,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if waist has more than 2 decimal places", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", waist: 60.123 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1459,11 +1469,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should pass if waist is a valid number", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id waist }
         }
       `;
+
       const input = { name: "Test", waist: 60.12 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1475,11 +1486,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if hip is a string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", hip: "not-a-number" };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1494,11 +1506,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if hip is less than 0", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", hip: -1 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1513,11 +1526,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if hip has more than 2 decimal places", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", hip: 90.123 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1532,7 +1546,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should pass if hip is a valid number", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id hip }
         }
@@ -1549,7 +1563,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if height is a string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
@@ -1569,7 +1583,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if height is less than 0", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
@@ -1589,11 +1603,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if height has more than 2 decimal places", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", height: 160.123 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1608,11 +1623,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should pass if height is a valid number", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id height }
         }
       `;
+
       const input = { name: "Test", height: 160.12 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1624,11 +1640,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if birthday is not a valid ISO 8601 string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", birthday: "31-12-2000" }; // not ISO 8601
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1643,11 +1660,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if birthday is a number", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", birthday: 20200101 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1662,11 +1680,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should pass if birthday is a valid ISO 8601 string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id birthday }
         }
       `;
+
       const input = { name: "Test", birthday: "2000-12-30" };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1680,11 +1699,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if birthday is a valid ISO 8601 string but not a valid date", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id birthday }
         }
       `;
+
       const input = { name: "Test", birthday: "2000-12-32" };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1699,11 +1719,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if bloodType is a blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", bloodType: "   " };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1718,11 +1739,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if bloodType is a number", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
       `;
+
       const input = { name: "Test", bloodType: 123 };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1737,11 +1759,12 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should pass if bloodType is a valid non-blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id bloodType }
         }
       `;
+
       const input = { name: "Test", bloodType: "A" };
       const response = await request(app.getHttpServer())
         .post("/graphql")
@@ -1753,7 +1776,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if hobby is a blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
@@ -1772,7 +1795,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if hobby is a number", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
@@ -1791,7 +1814,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should pass if hobby is a valid non-blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id hobby }
         }
@@ -1807,7 +1830,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if prefectures is a blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
@@ -1826,7 +1849,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if prefectures is a number", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id }
         }
@@ -1845,7 +1868,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should pass if prefectures is a valid non-blank string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id prefectures }
         }
@@ -1861,7 +1884,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if images is not an array", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id images { url attribute } }
         }
@@ -1880,7 +1903,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if an image is missing url", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id images { url attribute } }
         }
@@ -1899,7 +1922,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail if an image url is not a string", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id images { url attribute } }
         }
@@ -1921,7 +1944,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should pass if images is a valid array of CreateActressImageInput", async () => {
-      const mutation = `
+      const mutation = `#graphql
         mutation($input: CreateActressInput!) {
           createActress(input: $input) { id images { url attribute } }
         }
@@ -1948,7 +1971,7 @@ describe("Actress Module (e2e)", () => {
         displayName: "Original Display",
       });
 
-      const mutation = `
+      const mutation = `#graphql
     mutation($id: Int!, $input: UpdateActressInput!) {
       updateActress(id: $id, input: $input) {
         id
@@ -1987,7 +2010,7 @@ describe("Actress Module (e2e)", () => {
         birthday: "1990-01-01",
       });
 
-      const mutation = `
+      const mutation = `#graphql
     mutation($id: Int!, $input: UpdateActressInput!) {
       updateActress(id: $id, input: $input) {
         id
@@ -2024,7 +2047,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should return null if updating a non-existent actress", async () => {
-      const mutation = `
+      const mutation = `#graphql
     mutation($id: Int!, $input: UpdateActressInput!) {
       updateActress(id: $id, input: $input) {
         id
@@ -2056,7 +2079,7 @@ describe("Actress Module (e2e)", () => {
         name: "Image Actress",
       });
 
-      const mutation = `
+      const mutation = `#graphql
     mutation($input: AddActressImageInput!) {
       addActressImage(input: $input) {
         id
@@ -2097,7 +2120,7 @@ describe("Actress Module (e2e)", () => {
     });
 
     it("should fail to add an image if actress does not exist", async () => {
-      const mutation = `
+      const mutation = `#graphql
     mutation($input: AddActressImageInput!) {
       addActressImage(input: $input) {
         id
@@ -2141,7 +2164,7 @@ describe("Actress Module (e2e)", () => {
         actress: actress,
       });
 
-      const mutation = `
+      const mutation = `#graphql
     mutation($input: UpdateActressImageInput!) {
       updateActressImage(input: $input) {
         id
@@ -2188,7 +2211,7 @@ describe("Actress Module (e2e)", () => {
         name: "Nonexistent Image Actress",
       });
 
-      const mutation = `
+      const mutation = `#graphql
     mutation($input: UpdateActressImageInput!) {
       updateActressImage(input: $input) {
         id
@@ -2233,7 +2256,7 @@ describe("Actress Module (e2e)", () => {
         actress: actress,
       });
 
-      const mutation = `
+      const mutation = `#graphql
     mutation($input: RemoveActressImageInput!) {
       removeActressImage(input: $input)
     }
@@ -2267,7 +2290,7 @@ describe("Actress Module (e2e)", () => {
         name: "Nonexistent Remove Image Actress",
       });
 
-      const mutation = `
+      const mutation = `#graphql
     mutation($input: RemoveActressImageInput!) {
       removeActressImage(input: $input)
     }
