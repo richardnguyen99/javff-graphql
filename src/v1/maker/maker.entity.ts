@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
-import { Field, ID, ObjectType } from "@nestjs/graphql";
+import { Field, ID, Int, ObjectType } from "@nestjs/graphql";
 
 import { Video } from "src/v1/video/video.entity";
 
@@ -10,9 +10,17 @@ export class Maker {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field()
-  @Column({ unique: true })
+  @Field(() => Int)
+  @Column({ name: "dmm_id", unique: true })
+  dmmId: number;
+
+  @Field(() => String)
+  @Column({ unique: true, name: "name" })
   name: string;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, name: "ruby" })
+  ruby?: string;
 
   @Field(() => [Video], { nullable: true })
   @OneToMany(() => Video, (video) => video.maker)
