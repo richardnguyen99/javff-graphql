@@ -18,13 +18,14 @@ if not makers:
     print("No makers found in the input JSON.")
     sys.exit(0)
 
-fields = [k for k in makers[0].keys() if k != "list_url"]
+fields = ["id"] + [k for k in makers[0].keys() if k != "list_url"]
 
 with open(output_path, "w", encoding="utf-8", newline="") as f:
     writer = csv.DictWriter(f, fieldnames=fields)
     writer.writeheader()
-    for maker in makers:
-        row = {k: v for k, v in maker.items() if k in fields}
+    for i, maker in enumerate(makers, 1):
+        row = {k: v for k, v in maker.items() if k in fields[1:]}  # Skip 'id' from original data
+        row["id"] = i  # Add sequential ID
         writer.writerow(row)
 
 print(f"CSV written to {output_path}")

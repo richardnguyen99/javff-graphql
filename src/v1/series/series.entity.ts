@@ -10,11 +10,18 @@ export class Series {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field()
-  @Column({ unique: true })
+  @Field(() => String)
+  @Column({ unique: true, name: "name" })
   name: string;
 
-  @Field(() => [Video], { nullable: true })
+  @Field(() => String)
+  @Column({ name: "ruby" })
+  ruby: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true, name: "dmm_id", unique: true })
+  dmmId?: number;
+
   @OneToMany(() => Video, (video) => video.series)
   videos?: Video[];
 }

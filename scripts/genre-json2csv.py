@@ -21,7 +21,7 @@ if not genres:
 fields = [k for k in genres[0].keys() if k != "list_url"]
 
 with open(output_path, "w", encoding="utf-8", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=fields)
+    writer = csv.DictWriter(f, fieldnames=fields, delimiter="|")
     writer.writeheader()
     for genre in genres:
         row = {k: v for k, v in genre.items() if k in fields}

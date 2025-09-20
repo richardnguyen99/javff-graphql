@@ -18,13 +18,14 @@ if not series:
     print("No series found in the input JSON.")
     sys.exit(0)
 
-fields = [k for k in series[0].keys() if k != "list_url"]
+fields = ["id"] + [k for k in series[0].keys() if k != "list_url"]
 
 with open(output_path, "w", encoding="utf-8", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=fields)
+    writer = csv.DictWriter(f, fieldnames=fields, delimiter="|")
     writer.writeheader()
-    for serie in series:
-        row = {k: v for k, v in serie.items() if k in fields}
+    for i, serie in enumerate(series, 1):
+        row = {k: v for k, v in serie.items() if k in fields[1:]}  # Skip 'id' from original data
+        row["id"] = i  # Add sequential ID
         writer.writerow(row)
 
 print(f"CSV written to {output_path}")
