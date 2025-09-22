@@ -1,5 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
-import { Field, ID, ObjectType } from "@nestjs/graphql";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  Index,
+} from "typeorm";
+import { Field, ID, Int, ObjectType } from "@nestjs/graphql";
 
 import { Video } from "src/v1/video/video.entity";
 
@@ -14,12 +20,13 @@ export class Series {
   @Column({ unique: true, name: "name" })
   name: string;
 
-  @Field(() => String)
-  @Column({ name: "ruby" })
-  ruby: string;
-
   @Field({ nullable: true })
-  @Column({ nullable: true, name: "dmm_id", unique: true })
+  @Column({ nullable: true, name: "ruby" })
+  ruby?: string;
+
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true, name: "dmm_id" })
+  @Index({ unique: true, where: "dmm_id IS NOT NULL" })
   dmmId?: number;
 
   @OneToMany(() => Video, (video) => video.series)

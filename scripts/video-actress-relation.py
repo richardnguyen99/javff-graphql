@@ -62,7 +62,7 @@ def load_genre_data(genre_csv_path: str) -> Dict[str, int]:
         with open(genre_csv_path, 'r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
             for row in reader:
-                genre_id = int(row['genre_id'])
+                genre_id = int(row['id'])
                 name = row['name'].strip()
                 display_name = row.get('display_name', '').strip()
                 
@@ -231,56 +231,86 @@ def find_item_id(item_name: str, item_mapping: Dict[str, int]) -> Optional[int]:
     
     return None
 
-def create_video_dataset(video_tsv_path: str, output_path: str):
+def create_video_dataset(
+    video_tsv_path: str,
+    output_path: str,
+    maker_mapping: Dict[str, int],
+    series_mapping: Dict[str, int],
+    maker_alias_map: Dict[str, Tuple[str, int]],
+    series_alias_map: Dict[str, Tuple[str, int]]
+):
     """
-    Create a new video TSV dataset based on the Video entity structure.
-    
-    Args:
-        video_tsv_path: Path to the input video TSV file
-        output_path: Path to output the new video TSV file
+    Create a new video TSV dataset based on the Video entity structure,
+    including maker_id and series_id columns.
     """
     print("Creating new video dataset...")
-    
-    # Define the output columns based on Video entity
+
+    # Add maker_id and series_id to the output columns
     output_columns = [
         'id',           # PrimaryGeneratedColumn
         'code',         # display_id from input
         'dmm_id',       # dmm_id from input
         'title',        # title from input
-        'description',  # description from input
+        'label',        # label (not in input, will be null)
         'release_date', # release_date from input
-        'length'        # length (not in input, will be null)
+        'length',       # length (not in input, will be null)
+        'description',  # description from input
+        'maker_id',     # NEW: maker_id
+        'series_id',    # NEW: series_id
     ]
-    
+
     try:
         with open(video_tsv_path, 'r', encoding='utf-8') as input_file, \
              open(output_path, 'w', encoding='utf-8', newline='') as output_file:
-            
+
             reader = csv.DictReader(input_file, delimiter='\t')
             writer = csv.writer(output_file, delimiter='\t')
-            
+
             # Write header
             writer.writerow(output_columns)
-            
+
             video_count = 0
             for row in reader:
                 video_count += 1
-                
+
+                # Lookup maker_id
+                maker_name = row.get('makers', '').strip()
+                maker_id = None
+                if maker_name:
+                    maker_id = find_item_id(maker_name, maker_mapping)
+                    if maker_id is None and maker_alias_map:
+                        alias_result = maker_alias_map.get(maker_name)
+                        if alias_result:
+                            _, maker_id = alias_result
+
+                # Lookup series_id
+                series_name = row.get('series', '').strip()
+                series_id = None
+                if series_name:
+                    series_id = find_item_id(series_name, series_mapping)
+                    if series_id is None and series_alias_map:
+                        alias_result = series_alias_map.get(series_name)
+                        if alias_result:
+                            _, series_id = alias_result
+
                 # Map input columns to output columns
                 output_row = [
                     video_count,  # Auto-increment ID
                     row.get('display_id', '').strip() or None,  # code (display_id)
                     row.get('dmm_id', '').strip() or None,      # dmm_id
                     row.get('title', '').strip() or '',         # title (required)
-                    row.get('description', '').strip() or None, # description
+                    row.get('label', '').strip() or None,       # label
                     row.get('release_date', '').strip() or None, # release_date
-                    None  # length (not available in input)
+                    row.get('length', '').strip() or None,      # length
+                    row.get('description', '').strip() or None, # description
+                    maker_id,                                   # NEW: maker_id
+                    series_id,                                  # NEW: series_id
                 ]
-                
+
                 writer.writerow(output_row)
-        
+
         print(f"✅ Successfully created video dataset with {video_count} videos at: {output_path}")
-        
+
     except FileNotFoundError:
         print(f"Error: Video TSV file '{video_tsv_path}' not found.")
         sys.exit(1)
@@ -539,9 +569,6 @@ def main():
     
     args = parser.parse_args()
     
-    # Create video dataset if requested
-    if args.create_video_dataset:
-        create_video_dataset(args.video_tsv, args.video_output)
     
     print("Loading actress data...")
     actress_mapping = load_actress_data(args.actress_csv)
@@ -569,6 +596,18 @@ def main():
     if args.series_alias:
         print("Loading series alias table...")
         series_alias_map = load_series_alias_table(args.series_alias)
+        
+        
+    # Create video dataset if requested
+    if args.create_video_dataset:
+        create_video_dataset(
+            args.video_tsv,
+            args.video_output,
+            maker_mapping,
+            series_mapping,
+            maker_alias_map,
+            series_alias_map
+        )
     
     print("Processing video data...")
     actress_relationships, genre_relationships, maker_relationships, series_relationships = process_video_data(

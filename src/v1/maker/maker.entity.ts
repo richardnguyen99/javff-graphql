@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  Index,
+} from "typeorm";
 import { Field, ID, Int, ObjectType } from "@nestjs/graphql";
 
 import { Video } from "src/v1/video/video.entity";
@@ -11,7 +17,8 @@ export class Maker {
   id: number;
 
   @Field(() => Int)
-  @Column({ name: "dmm_id", unique: true })
+  @Column({ name: "dmm_id", nullable: true })
+  @Index({ unique: true, where: "dmm_id IS NOT NULL" })
   dmmId: number;
 
   @Field(() => String)

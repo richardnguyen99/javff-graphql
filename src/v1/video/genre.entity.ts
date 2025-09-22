@@ -1,5 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from "typeorm";
-import { Field, ID, ObjectType } from "@nestjs/graphql";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToMany,
+  Index,
+} from "typeorm";
+import { Field, ID, Int, ObjectType } from "@nestjs/graphql";
 import { Video } from "src/v1/video/video.entity";
 
 @ObjectType()
@@ -8,6 +14,11 @@ export class Genre {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true, name: "dmm_id" })
+  @Index({ unique: true, where: "dmm_id IS NOT NULL" })
+  dmmId?: number;
 
   @Field({ description: "The name of the genre" })
   @Column({ nullable: false })

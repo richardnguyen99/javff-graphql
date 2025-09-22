@@ -63,7 +63,11 @@ export class Video {
 
   @Field(() => [Actress], { nullable: true })
   @ManyToMany(() => Actress, (actress) => actress.videos, { cascade: true })
-  @JoinTable()
+  @JoinTable({
+    name: "video_actresses", // Junction table name
+    joinColumn: { name: "video_id", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "actress_id", referencedColumnName: "id" },
+  })
   actresses?: Actress[];
 
   @Field(() => [Genre], { nullable: true })
