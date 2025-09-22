@@ -21,9 +21,8 @@ export class VideoResolver {
   createVideo(
     @Args("code") code: string,
     @Args("title") title: string,
-    @Args("coverImage", { nullable: true }) coverImage?: string,
-    @Args("releaseDate", { nullable: true }) releaseDate?: string
+    @Args("releaseDate", { nullable: true }) releaseDate?: Date
   ) {
-    return this.videoService.create({ code, title, coverImage, releaseDate });
+    return this.videoService.create({ code, title, releaseDate });
   }
 }
