@@ -6,6 +6,7 @@ import {
   ManyToOne,
   JoinTable,
   Index,
+  JoinColumn,
 } from "typeorm";
 import { Field, ID, ObjectType } from "@nestjs/graphql";
 
@@ -45,6 +46,10 @@ export class Video {
   @Column({ nullable: true, type: "text", name: "description" })
   description?: string;
 
+  @Field({ nullable: true, description: "The label that the video belongs to" })
+  @Column({ nullable: true, type: "text", name: "label" })
+  label?: string;
+
   @Field({
     nullable: true,
     description: "The release date of the video in ISO 8601",
@@ -72,9 +77,11 @@ export class Video {
 
   @Field(() => Series, { nullable: true })
   @ManyToOne(() => Series, (series) => series.videos, { nullable: true })
+  @JoinColumn({ name: "series_id" })
   series?: Series;
 
   @Field(() => Maker, { nullable: true })
   @ManyToOne(() => Maker, (maker) => maker.videos, { nullable: true })
+  @JoinColumn({ name: "maker_id" })
   maker?: Maker;
 }
