@@ -36,49 +36,51 @@ describe("VideoResolver", () => {
     expect(resolver).toBeDefined();
   });
 
-  it("videos should return a list of videos", async () => {
-    const mockVideo: Video = { id: 1, title: "Test Video" } as Video;
-    const mockEdge = {
-      cursor: Buffer.from("1").toString("base64"),
-      node: mockVideo,
-    };
-    const mockConnection: VideoConnection = {
-      edges: [mockEdge],
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: mockEdge.cursor,
-        endCursor: mockEdge.cursor,
-      },
-      totalCount: 1,
-    };
+  describe("videos query", () => {
+    it("should return a list of videos", async () => {
+      const mockVideo: Video = { id: 1, title: "Test Video" } as Video;
+      const mockEdge = {
+        cursor: Buffer.from("1").toString("base64"),
+        node: mockVideo,
+      };
+      const mockConnection: VideoConnection = {
+        edges: [mockEdge],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: mockEdge.cursor,
+          endCursor: mockEdge.cursor,
+        },
+        totalCount: 1,
+      };
 
-    mockVideoService.findAllConnection.mockResolvedValue(mockConnection);
+      mockVideoService.findAllConnection.mockResolvedValue(mockConnection);
 
-    const options: VideoQueryOptionsInput = { first: 1 };
-    const result = await resolver.videos(options);
+      const options: VideoQueryOptionsInput = { first: 1 };
+      const result = await resolver.videos(options);
 
-    expect(service.findAllConnection).toHaveBeenCalledWith(options);
-    expect(result).toEqual(mockConnection);
-  });
+      expect(service.findAllConnection).toHaveBeenCalledWith(options);
+      expect(result).toEqual(mockConnection);
+    });
 
-  it("videos should pass undefined if no options are provided", async () => {
-    const mockConnection: VideoConnection = {
-      edges: [],
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: null,
-        endCursor: null,
-      },
-      totalCount: 0,
-    };
+    it("should pass undefined if no options are provided", async () => {
+      const mockConnection: VideoConnection = {
+        edges: [],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+        totalCount: 0,
+      };
 
-    mockVideoService.findAllConnection.mockResolvedValue(mockConnection);
+      mockVideoService.findAllConnection.mockResolvedValue(mockConnection);
 
-    const result = await resolver.videos(undefined);
+      const result = await resolver.videos(undefined);
 
-    expect(service.findAllConnection).toHaveBeenCalledWith(undefined);
-    expect(result).toEqual(mockConnection);
+      expect(service.findAllConnection).toHaveBeenCalledWith(undefined);
+      expect(result).toEqual(mockConnection);
+    });
   });
 });
