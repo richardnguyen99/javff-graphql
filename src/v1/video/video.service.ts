@@ -39,7 +39,12 @@ export class VideoService {
     const last = options?.last;
     const before = options?.before;
 
-    const qb = this.videoRepository.createQueryBuilder("video");
+    const qb = this.videoRepository
+      .createQueryBuilder("video")
+      .leftJoinAndSelect("video.actresses", "actress")
+      .leftJoinAndSelect("video.series", "series")
+      .leftJoinAndSelect("video.maker", "maker")
+      .leftJoinAndSelect("video.genres", "genre");
 
     const totalQb = qb.clone();
 
