@@ -12,25 +12,6 @@ export class VideoService {
     @InjectRepository(Video)
     private readonly videoRepository: Repository<Video>
   ) {}
-
-  findAll(): Promise<Video[]> {
-    return this.videoRepository.find({
-      relations: ["actresses", "series", "maker"],
-    });
-  }
-
-  findOne(id: number): Promise<Video> {
-    return this.videoRepository.findOne({
-      where: { id },
-      relations: ["actresses", "series", "maker"],
-    });
-  }
-
-  create(data: Partial<Video>): Promise<Video> {
-    const video = this.videoRepository.create(data);
-    return this.videoRepository.save(video);
-  }
-
   async findAllConnection(
     options?: VideoQueryOptionsInput
   ): Promise<VideoConnection> {

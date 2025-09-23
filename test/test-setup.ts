@@ -18,6 +18,8 @@ import { Series } from "src/v1/series/series.entity";
 import { Maker } from "src/v1/maker/maker.entity";
 import { formatError } from "src/common/utils/apollo-format-error";
 import { DateTimeScalar } from "src/scalars/date-time.scalar";
+import { Genre } from "src/v1/video/genre.entity";
+import { VideoModule } from "src/v1/video/video.module";
 
 type SetupTestAppLifeCycle = {
   onInit?: (app: INestApplication) => void;
@@ -53,7 +55,7 @@ export class TestSetup {
           username: this._container.getUsername(),
           password: this._container.getPassword(),
           database: this._container.getDatabase(),
-          entities: [Actress, ActressImage, Video, Series, Maker],
+          entities: [Actress, ActressImage, Video, Series, Maker, Genre],
           synchronize: true,
           logging: false,
         }),
@@ -67,6 +69,7 @@ export class TestSetup {
         }),
 
         ActressModule,
+        VideoModule,
       ],
 
       providers: [DateTimeScalar],
@@ -89,7 +92,7 @@ export class TestSetup {
         username: this._container.getUsername(),
         password: this._container.getPassword(),
         database: this._container.getDatabase(),
-        entities: [Actress, ActressImage, Video, Series, Maker],
+        entities: [Actress, ActressImage, Video, Series, Maker, Genre],
         synchronize: false,
       });
 

@@ -16,22 +16,58 @@ type ActressImage {
 type Series {
   id: ID!
   name: String!
-  videos: [Video!]
+  ruby: String
+  dmmId: Int
 }
 
 type Maker {
   id: ID!
+  dmmId: Int!
   name: String!
+  ruby: String
+  videos: [Video!]
+}
+
+type Genre {
+  id: ID!
+  dmmId: Int
+
+  """The name of the genre"""
+  name: String!
+
+  """Ruby reading of the genre name"""
+  ruby: String
+
+  """English display name of the genre"""
+  displayName: String
   videos: [Video!]
 }
 
 type Video {
   id: ID!
-  code: String!
+
+  """The unique code of the video"""
+  code: String
+
+  """DMM ID (unique identifier, optional)"""
+  dmmId: String
+
+  """The title of the video"""
   title: String!
-  coverImage: String
-  releaseDate: String
+
+  """The description of the video"""
+  description: String
+
+  """The label that the video belongs to"""
+  label: String
+
+  """The release date of the video in ISO 8601"""
+  releaseDate: DateTime
+
+  """The length of the video in minutes"""
+  length: Float
   actresses: [Actress!]
+  genres: [Genre!]
   series: Series
   maker: Maker
 }
@@ -81,12 +117,9 @@ type Actress {
 
   """List of actress images"""
   images: [ActressImage!]
-
-  """List of videos featuring the actress"""
-  videos: [Video!]
 }
 
-type PageInfo {
+type ActressPageInfo {
   """Indicates if there are more pages after this one"""
   hasNextPage: Boolean!
 
@@ -113,7 +146,7 @@ type ActressConnection {
   edges: [ActressEdge!]!
 
   """Pagination information for this connection"""
-  pageInfo: PageInfo!
+  pageInfo: ActressPageInfo!
 
   """Total number of actresses matching the filter"""
   totalCount: Int!
@@ -216,6 +249,24 @@ type DeleteActressOutput {
   images: [ActressImage!]
 }
 
+type VideoEdge {
+  cursor: String!
+  node: Video!
+}
+
+type VideoPageInfo {
+  hasNextPage: Boolean
+  hasPreviousPage: Boolean
+  startCursor: String
+  endCursor: String
+}
+
+type VideoConnection {
+  edges: [VideoEdge!]!
+  pageInfo: VideoPageInfo!
+  totalCount: Int!
+}
+
 """DateTime custom scalar type to work with ISO 8601 date strings"""
 scalar DateTime
 
@@ -233,6 +284,9 @@ type Query {
 
   """Get a single actress by her DMM ID."""
   actressByDmmId(dmmId: String!): Actress
+
+  """Get a paginated list of videos with Relay-style pagination."""
+  videos(options: VideoQueryOptionsInput): VideoConnection!
 }
 
 input ActressQueryOptionsInput {
@@ -279,6 +333,20 @@ input ActressQueryOptionsInput {
 enum ActressSortOrder {
   ASC
   DESC
+}
+
+input VideoQueryOptionsInput {
+  """Number of records to fetch forward"""
+  first: Int
+
+  """Cursor for forward pagination"""
+  after: String
+
+  """Number of records to fetch backward"""
+  last: Int
+
+  """Cursor for backward pagination"""
+  before: String
 }
 
 type Mutation {
