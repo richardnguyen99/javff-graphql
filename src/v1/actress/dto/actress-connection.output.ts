@@ -2,7 +2,7 @@ import { ObjectType, Field, Int } from "@nestjs/graphql";
 import { Actress } from "../actress.entity";
 
 @ObjectType()
-export class PageInfo {
+export class ActressPageInfo {
   @Field({ description: "Indicates if there are more pages after this one" })
   hasNextPage: boolean;
 
@@ -38,10 +38,10 @@ export class ActressConnection {
   })
   edges: ActressEdge[];
 
-  @Field(() => PageInfo, {
+  @Field(() => ActressPageInfo, {
     description: "Pagination information for this connection",
   })
-  pageInfo: PageInfo;
+  pageInfo: ActressPageInfo;
 
   @Field(() => Int, {
     description: "Total number of actresses matching the filter",

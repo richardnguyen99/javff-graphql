@@ -5,7 +5,7 @@ import { Repository } from "typeorm";
 import { ActressService } from "src/v1/actress/actress.service";
 import { Actress } from "src/v1/actress/actress.entity";
 import { ActressImage } from "src/v1/actress/actress-image.entity";
-import { ActressEdge, PageInfo } from "./dto/actress-connection.output";
+import { ActressEdge, ActressPageInfo } from "./dto/actress-connection.output";
 import { ActressSortOrder } from "./dto/actress-query-options.input";
 import { NotFoundException } from "@nestjs/common";
 
@@ -377,7 +377,7 @@ describe("ActressService", () => {
     const mockEdges: ActressEdge[] = [
       { cursor: Buffer.from("1").toString("base64"), node: mockActress },
     ];
-    const mockPageInfo: PageInfo = {
+    const mockActressPageInfo: ActressPageInfo = {
       hasNextPage: false,
       hasPreviousPage: false,
       startCursor: mockEdges[0].cursor,
@@ -403,7 +403,7 @@ describe("ActressService", () => {
 
     expect(result.edges).toHaveLength(1);
     expect(result.edges[0].node).toEqual(mockActress);
-    expect(result.pageInfo).toEqual(mockPageInfo);
+    expect(result.pageInfo).toEqual(mockActressPageInfo);
     expect(result.totalCount).toBe(1);
   });
 

@@ -10,7 +10,7 @@ import { ActressQueryOptionsInput } from "src/v1/actress/dto/actress-query-optio
 import {
   ActressConnection,
   ActressEdge,
-  PageInfo,
+  ActressPageInfo,
 } from "src/v1/actress/dto/actress-connection.output";
 import {
   AddActressImageInput,
@@ -270,7 +270,7 @@ export class ActressService {
       node: actress,
     }));
 
-    const pageInfo: PageInfo = {
+    const pageInfo: ActressPageInfo = {
       hasNextPage,
       hasPreviousPage,
       startCursor: edges.length > 0 ? edges[0].cursor : null,
