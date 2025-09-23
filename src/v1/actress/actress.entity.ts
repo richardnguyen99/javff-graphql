@@ -94,10 +94,6 @@ export class Actress {
   @OneToMany(() => ActressImage, (image) => image.actress, { cascade: true })
   images?: ActressImage[];
 
-  @Field(() => [Video], {
-    nullable: true,
-    description: "List of videos featuring the actress",
-  })
   @ManyToMany(() => Video, (video) => video.actresses)
   videos?: Video[];
 }

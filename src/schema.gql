@@ -16,22 +16,58 @@ type ActressImage {
 type Series {
   id: ID!
   name: String!
-  videos: [Video!]
+  ruby: String
+  dmmId: Int
 }
 
 type Maker {
   id: ID!
+  dmmId: Int!
   name: String!
+  ruby: String
+  videos: [Video!]
+}
+
+type Genre {
+  id: ID!
+  dmmId: Int
+
+  """The name of the genre"""
+  name: String!
+
+  """Ruby reading of the genre name"""
+  ruby: String
+
+  """English display name of the genre"""
+  displayName: String
   videos: [Video!]
 }
 
 type Video {
   id: ID!
-  code: String!
+
+  """The unique code of the video"""
+  code: String
+
+  """DMM ID (unique identifier, optional)"""
+  dmmId: String
+
+  """The title of the video"""
   title: String!
-  coverImage: String
-  releaseDate: String
+
+  """The description of the video"""
+  description: String
+
+  """The label that the video belongs to"""
+  label: String
+
+  """The release date of the video in ISO 8601"""
+  releaseDate: DateTime
+
+  """The length of the video in minutes"""
+  length: Float
   actresses: [Actress!]
+  genres: [Genre!]
   series: Series
   maker: Maker
 }
@@ -81,9 +117,6 @@ type Actress {
 
   """List of actress images"""
   images: [ActressImage!]
-
-  """List of videos featuring the actress"""
-  videos: [Video!]
 }
 
 type PageInfo {
@@ -307,7 +340,7 @@ type Mutation {
   Delete an actress record by ID and return the deleted actress and images.
   """
   deleteActress(id: Int!): DeleteActressOutput!
-  createVideo(code: String!, title: String!, coverImage: String, releaseDate: String): Video!
+  createVideo(code: String!, title: String!, releaseDate: DateTime): Video!
   createSeries(name: String!): Series!
   createMaker(name: String!): Maker!
 }
