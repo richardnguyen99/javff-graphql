@@ -1,4 +1,4 @@
-import { InputType, Field, Int } from "@nestjs/graphql";
+import { InputType, Field, Int, ID } from "@nestjs/graphql";
 
 @InputType()
 export class VideoQueryOptionsInput {
@@ -25,4 +25,28 @@ export class VideoQueryOptionsInput {
     description: "Cursor for backward pagination",
   })
   before?: string;
+
+  @Field(() => [ID], {
+    nullable: true,
+    description: "Filter by actress IDs (many-to-many)",
+  })
+  actressIds?: string[];
+
+  @Field(() => [ID], {
+    nullable: true,
+    description: "Filter by genre IDs (many-to-many)",
+  })
+  genreIds?: string[];
+
+  @Field(() => ID, {
+    nullable: true,
+    description: "Filter by maker ID (many-to-one)",
+  })
+  makerId?: string;
+
+  @Field(() => ID, {
+    nullable: true,
+    description: "Filter by series ID (many-to-one)",
+  })
+  seriesId?: string;
 }

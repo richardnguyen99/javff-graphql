@@ -351,6 +351,18 @@ input VideoQueryOptionsInput {
 
   """Cursor for backward pagination"""
   before: String
+
+  """Filter by actress IDs (many-to-many)"""
+  actressIds: [ID!]
+
+  """Filter by genre IDs (many-to-many)"""
+  genreIds: [ID!]
+
+  """Filter by maker ID (many-to-one)"""
+  makerId: ID
+
+  """Filter by series ID (many-to-one)"""
+  seriesId: ID
 }
 
 type Mutation {

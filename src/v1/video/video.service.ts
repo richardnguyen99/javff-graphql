@@ -12,6 +12,7 @@ export class VideoService {
     @InjectRepository(Video)
     private readonly videoRepository: Repository<Video>
   ) {}
+
   async findAllConnection(
     options?: VideoQueryOptionsInput
   ): Promise<VideoConnection> {
@@ -22,10 +23,29 @@ export class VideoService {
 
     const qb = this.videoRepository
       .createQueryBuilder("video")
-      .leftJoinAndSelect("video.actresses", "actress")
       .leftJoinAndSelect("video.series", "series")
       .leftJoinAndSelect("video.maker", "maker")
       .leftJoinAndSelect("video.genres", "genre");
+
+    if (options?.actressIds && options.actressIds.length > 0) {
+      const subquery = this.videoRepository
+        .createQueryBuilder("v")
+        .select("v.id")
+        .innerJoin("v.actresses", "va")
+        .where("va.id IN (:...actressIds)", { actressIds: options.actressIds })
+        .groupBy("v.id")
+        .having("COUNT(DISTINCT va.id) = :actressCount", {
+          actressCount: options.actressIds.length,
+        });
+
+      qb.andWhere(`video.id IN (${subquery.getQuery()})`).setParameters(
+        subquery.getParameters()
+      );
+
+      qb.leftJoinAndSelect("video.actresses", "actress");
+    } else {
+      qb.leftJoinAndSelect("video.actresses", "actress");
+    }
 
     const totalQb = qb.clone();
 
