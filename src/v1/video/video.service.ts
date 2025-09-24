@@ -63,7 +63,6 @@ export class VideoService {
       );
     }
 
-    // Handle maker and series filtering (many-to-one relations)
     if (options?.makerId) {
       qb.andWhere("maker.id = :makerId", { makerId: options.makerId });
     }
