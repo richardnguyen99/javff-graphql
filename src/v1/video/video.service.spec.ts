@@ -119,5 +119,104 @@ describe("VideoService", () => {
       expect(result.pageInfo.hasPreviousPage).toBe(false);
       expect(result.totalCount).toBe(0);
     });
+
+    it("should filter videos by a single actress id", async () => {
+      const getMany = jest.fn().mockResolvedValue([mockVideo]);
+      const getCount = jest.fn().mockResolvedValue(1);
+      const orderBy = jest.fn().mockReturnThis();
+      const take = jest.fn().mockReturnThis();
+      const andWhere = jest.fn().mockReturnThis();
+      const leftJoinAndSelect = jest.fn().mockReturnThis();
+      const clone = jest.fn().mockReturnValue({
+        getCount,
+      });
+      const select = jest.fn().mockReturnThis();
+      const innerJoin = jest.fn().mockReturnThis();
+      const where = jest.fn().mockReturnThis();
+      const groupBy = jest.fn().mockReturnThis();
+      const having = jest.fn().mockReturnThis();
+      const getQuery = jest.fn().mockReturnValue("subquery");
+      const setParameters = jest.fn().mockReturnValue({});
+      const getParameters = jest.fn().mockReturnValue({});
+
+      const qb = {
+        leftJoinAndSelect,
+        orderBy,
+        take,
+        andWhere,
+        getMany,
+        clone,
+        select,
+        innerJoin,
+        where,
+        groupBy,
+        having,
+        getQuery,
+        setParameters,
+        getParameters,
+      };
+
+      mockRepo.createQueryBuilder.mockReturnValue(qb);
+
+      const options: VideoQueryOptionsInput = { actressIds: ["123"], first: 1 };
+      const result = await service.findAllConnection(options);
+
+      expect(mockRepo.createQueryBuilder).toHaveBeenCalledWith("video");
+      expect(andWhere).toHaveBeenCalled(); // Should be called for actress subquery
+      expect(result.edges.length).toBe(1);
+      expect(result.edges[0].node).toEqual(mockVideo);
+      expect(result.totalCount).toBe(1);
+    });
+
+    it("should filter videos by multiple actress ids", async () => {
+      const getMany = jest.fn().mockResolvedValue([mockVideo]);
+      const getCount = jest.fn().mockResolvedValue(1);
+      const orderBy = jest.fn().mockReturnThis();
+      const take = jest.fn().mockReturnThis();
+      const andWhere = jest.fn().mockReturnThis();
+      const leftJoinAndSelect = jest.fn().mockReturnThis();
+      const clone = jest.fn().mockReturnValue({
+        getCount,
+      });
+      const select = jest.fn().mockReturnThis();
+      const innerJoin = jest.fn().mockReturnThis();
+      const where = jest.fn().mockReturnThis();
+      const groupBy = jest.fn().mockReturnThis();
+      const having = jest.fn().mockReturnThis();
+      const getQuery = jest.fn().mockReturnValue("subquery");
+      const setParameters = jest.fn().mockReturnValue({});
+      const getParameters = jest.fn().mockReturnValue({});
+
+      const qb = {
+        leftJoinAndSelect,
+        orderBy,
+        take,
+        andWhere,
+        getMany,
+        clone,
+        select,
+        innerJoin,
+        where,
+        groupBy,
+        having,
+        getQuery,
+        setParameters,
+        getParameters,
+      };
+
+      mockRepo.createQueryBuilder.mockReturnValue(qb);
+
+      const options: VideoQueryOptionsInput = {
+        actressIds: ["123", "456"],
+        first: 1,
+      };
+      const result = await service.findAllConnection(options);
+
+      expect(mockRepo.createQueryBuilder).toHaveBeenCalledWith("video");
+      expect(andWhere).toHaveBeenCalled(); // Should be called for actress subquery
+      expect(result.edges.length).toBe(1);
+      expect(result.edges[0].node).toEqual(mockVideo);
+      expect(result.totalCount).toBe(1);
+    });
   });
 });

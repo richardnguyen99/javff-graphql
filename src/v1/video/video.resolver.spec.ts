@@ -1,9 +1,11 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { VideoResolver } from "./video.resolver";
-import { VideoService } from "./video.service";
-import { VideoConnection } from "./dto/video-connection.output";
-import { VideoQueryOptionsInput } from "./dto/video-query-options.input";
-import { Video } from "./video.entity";
+
+import { VideoResolver } from "src/v1/video/video.resolver";
+import { VideoService } from "src/v1/video/video.service";
+import { Video } from "src/v1/video/video.entity";
+
+import { VideoConnection } from "src/v1/video/dto/video-connection.output";
+import { VideoQueryOptionsInput } from "src/v1/video/dto/video-query-options.input";
 
 describe("VideoResolver", () => {
   let resolver: VideoResolver;
@@ -80,6 +82,58 @@ describe("VideoResolver", () => {
       const result = await resolver.videos(undefined);
 
       expect(service.findAllConnection).toHaveBeenCalledWith(undefined);
+      expect(result).toEqual(mockConnection);
+    });
+
+    it("should filter videos by a single actress id", async () => {
+      const mockVideo: Video = { id: 2, title: "Actress Video" } as Video;
+      const mockEdge = {
+        cursor: Buffer.from("2").toString("base64"),
+        node: mockVideo,
+      };
+      const mockConnection: VideoConnection = {
+        edges: [mockEdge],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: mockEdge.cursor,
+          endCursor: mockEdge.cursor,
+        },
+        totalCount: 1,
+      };
+
+      const options: VideoQueryOptionsInput = { actressIds: ["123"] };
+      mockVideoService.findAllConnection.mockResolvedValue(mockConnection);
+
+      const result = await resolver.videos(options);
+
+      expect(service.findAllConnection).toHaveBeenCalledWith(options);
+      expect(result).toEqual(mockConnection);
+    });
+
+    it("should filter videos by multiple actress ids", async () => {
+      const mockVideo: Video = { id: 3, title: "Multi Actress Video" } as Video;
+      const mockEdge = {
+        cursor: Buffer.from("3").toString("base64"),
+        node: mockVideo,
+      };
+      const mockConnection: VideoConnection = {
+        edges: [mockEdge],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: mockEdge.cursor,
+          endCursor: mockEdge.cursor,
+        },
+        totalCount: 1,
+      };
+
+      const options: VideoQueryOptionsInput = { actressIds: ["123", "456"] };
+      mockVideoService.findAllConnection.mockResolvedValue(mockConnection);
+
+      const result = await resolver.videos(options);
+
+      expect(service.findAllConnection).toHaveBeenCalledWith(options);
       expect(result).toEqual(mockConnection);
     });
   });
