@@ -28,7 +28,7 @@ export class VideoService {
       .leftJoinAndSelect("video.genres", "genre");
 
     if (options?.actressIds && options.actressIds.length > 0) {
-      const subquery = this.videoRepository
+      const actressSubquery = this.videoRepository
         .createQueryBuilder("v")
         .select("v.id")
         .innerJoin("v.actresses", "va")
@@ -38,13 +38,38 @@ export class VideoService {
           actressCount: options.actressIds.length,
         });
 
-      qb.andWhere(`video.id IN (${subquery.getQuery()})`).setParameters(
-        subquery.getParameters()
+      qb.andWhere(`video.id IN (${actressSubquery.getQuery()})`).setParameters(
+        actressSubquery.getParameters()
       );
 
       qb.leftJoinAndSelect("video.actresses", "actress");
     } else {
       qb.leftJoinAndSelect("video.actresses", "actress");
+    }
+
+    if (options?.genreIds && options.genreIds.length > 0) {
+      const genreSubquery = this.videoRepository
+        .createQueryBuilder("v2")
+        .select("v2.id")
+        .innerJoin("v2.genres", "vg")
+        .where("vg.id IN (:...genreIds)", { genreIds: options.genreIds })
+        .groupBy("v2.id")
+        .having("COUNT(DISTINCT vg.id) = :genreCount", {
+          genreCount: options.genreIds.length,
+        });
+
+      qb.andWhere(`video.id IN (${genreSubquery.getQuery()})`).setParameters(
+        genreSubquery.getParameters()
+      );
+    }
+
+    // Handle maker and series filtering (many-to-one relations)
+    if (options?.makerId) {
+      qb.andWhere("maker.id = :makerId", { makerId: options.makerId });
+    }
+
+    if (options?.seriesId) {
+      qb.andWhere("series.id = :seriesId", { seriesId: options.seriesId });
     }
 
     const totalQb = qb.clone();
