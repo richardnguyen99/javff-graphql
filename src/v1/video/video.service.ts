@@ -71,6 +71,21 @@ export class VideoService {
       qb.andWhere("series.id = :seriesId", { seriesId: options.seriesId });
     }
 
+    if (options?.actressCount !== undefined) {
+      const actressCountSubquery = this.videoRepository
+        .createQueryBuilder("v3")
+        .select("v3.id")
+        .leftJoin("v3.actresses", "ac")
+        .groupBy("v3.id")
+        .having("COUNT(ac.id) = :count", {
+          count: options.actressCount,
+        });
+
+      qb.andWhere(
+        `video.id IN (${actressCountSubquery.getQuery()})`
+      ).setParameters(actressCountSubquery.getParameters());
+    }
+
     const totalQb = qb.clone();
 
     let forward = true;

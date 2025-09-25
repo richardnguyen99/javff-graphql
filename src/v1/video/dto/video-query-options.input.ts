@@ -49,4 +49,10 @@ export class VideoQueryOptionsInput {
     description: "Filter by series ID (many-to-one)",
   })
   seriesId?: string;
+
+  @Field(() => Int, {
+    nullable: true,
+    description: "Only include videos with exactly this many actresses",
+  })
+  actressCount?: number;
 }
