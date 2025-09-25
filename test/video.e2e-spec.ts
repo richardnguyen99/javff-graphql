@@ -86,6 +86,40 @@ describe("Video Module (e2e)", () => {
         name: "Action",
       });
 
+      const soeSeries = await dataSource.getRepository(Series).save({
+        id: 3749,
+        name: "S1 GIRLS COLLECTION",
+      });
+      const mdSeries = await dataSource.getRepository(Series).save({
+        id: 15112,
+        name: "猿轡レ×プ調教",
+      });
+      const snMaker = await dataSource.getRepository(Maker).save({
+        id: 565,
+        name: "エスワン ナンバーワンスタイル",
+      });
+      const mdMaker = await dataSource.getRepository(Maker).save({
+        id: 3905,
+        name: "ムーディーズ",
+      });
+      const opMaker = await dataSource.getRepository(Maker).save({
+        id: 818,
+        name: "OPPAI",
+      });
+
+      const actress1 = await dataSource.getRepository(Actress).save({
+        name: "沖田杏梨",
+        displayName: "Okita Anri",
+      });
+      const actress2 = await dataSource.getRepository(Actress).save({
+        name: "Hitomi（田中瞳）",
+        displayName: "Hitomi (Tanaka Hitomi)",
+      });
+      const actress3 = await dataSource.getRepository(Actress).save({
+        name: "蓮実クレア",
+        displayName: "Claire Hasumi",
+      });
+
       await dataSource.getRepository(Video).save([
         {
           code: "V001",
@@ -106,6 +140,36 @@ describe("Video Module (e2e)", () => {
           genres: [],
           releaseDate: "2021-01-01",
           length: 90,
+        },
+        {
+          code: "SOE-123",
+          title: "S1 Sample Video",
+          actresses: [actress1],
+          series: soeSeries,
+          maker: snMaker,
+          genres: [genre1],
+          releaseDate: "2022-01-01",
+          length: 150,
+        },
+        {
+          code: "MDYD-456",
+          title: "Moodyz Sample Video",
+          actresses: [actress1, actress2],
+          series: mdSeries,
+          maker: mdMaker,
+          genres: [genre2],
+          releaseDate: "2023-01-01",
+          length: 180,
+        },
+        {
+          code: "PPPD-789",
+          title: "OPPAI Sample Video",
+          actresses: [actress1, actress2, actress3],
+          series: null,
+          maker: opMaker,
+          genres: [genre1, genre2],
+          releaseDate: "2024-01-01",
+          length: 200,
         },
       ]);
     });
@@ -143,7 +207,7 @@ describe("Video Module (e2e)", () => {
         .send({ query })
         .expect(200);
 
-      expect(response.body.data.videos.totalCount).toBe(2);
+      expect(response.body.data.videos.totalCount).toBe(5);
       const nodes = response.body.data.videos.edges.map((e) => e.node);
 
       expect(nodes[0]).toMatchObject({
@@ -358,7 +422,7 @@ describe("Video Module (e2e)", () => {
         .send({ query })
         .expect(200);
 
-      expect(response.body.data.videos.totalCount).toBe(1);
+      expect(response.body.data.videos.totalCount).toBe(3);
       const nodes = response.body.data.videos.edges.map((e) => e.node);
       expect(nodes[0]).toMatchObject({
         code: "V001",
@@ -796,6 +860,125 @@ describe("Video Module (e2e)", () => {
           }) {
             totalCount
             edges { node { id code title } }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(0);
+      expect(response.body.data.videos.edges).toHaveLength(0);
+    });
+
+    it("should filter videos by actressCount = 1", async () => {
+      const query = `#graphql
+        query {
+          videos(options: { actressCount: 1 }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+                actresses { id name }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(2);
+
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        code: "V001",
+        title: "First Video",
+        actresses: [{ id: expect.any(String), name: "Aki" }],
+      });
+    });
+
+    it("should filter videos by actressCount = 3", async () => {
+      const query = `#graphql
+        query {
+          videos(options: { actressCount: 3 }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+                actresses { id displayName }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(1);
+
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        code: "PPPD-789",
+        title: "OPPAI Sample Video",
+        actresses: expect.arrayContaining([
+          { id: expect.any(String), displayName: "Okita Anri" },
+          { id: expect.any(String), displayName: "Hitomi (Tanaka Hitomi)" },
+          { id: expect.any(String), displayName: "Claire Hasumi" },
+        ]),
+      });
+    });
+
+    it("should filter videos by actressCount = 0", async () => {
+      const query = `#graphql
+        query {
+          videos(options: { actressCount: 0 }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+                actresses { id name }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(1);
+
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        code: "V002",
+        title: "Second Video",
+        actresses: [],
+      });
+    });
+
+    it("should return empty when no video matches the actressCount", async () => {
+      const query = `#graphql
+        query {
+          videos(options: { actressCount: 5 }) {
+            totalCount
+            edges { node { id code title actresses { id name } } }
           }
         }
       `;

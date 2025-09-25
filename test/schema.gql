@@ -359,6 +359,9 @@ input VideoQueryOptionsInput {
 
   """Filter by series ID (many-to-one)"""
   seriesId: ID
+
+  """Only include videos with exactly this many actresses"""
+  actressCount: Int
 }
 
 type Mutation {
