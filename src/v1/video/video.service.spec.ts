@@ -1329,5 +1329,111 @@ describe("VideoService", () => {
       expect(result.edges.length).toBe(0);
       expect(result.totalCount).toBe(0);
     });
+
+    it("should filter videos by exact actressCount", async () => {
+      const mockActress1 = { id: 1, name: "Aki" };
+      const mockActress2 = { id: 2, name: "Mio" };
+      const mockVideo1 = {
+        id: 1,
+        title: "Video 1",
+        actresses: [mockActress1, mockActress2],
+      } as Video;
+
+      const getMany = jest.fn().mockResolvedValue([mockVideo1]);
+      const getCount = jest.fn().mockResolvedValue(1);
+      const orderBy = jest.fn().mockReturnThis();
+      const take = jest.fn().mockReturnThis();
+      const andWhere = jest.fn().mockReturnThis();
+      const leftJoinAndSelect = jest.fn().mockReturnThis();
+      const clone = jest.fn().mockReturnValue({
+        getCount,
+      });
+      const select = jest.fn().mockReturnThis();
+      const leftJoin = jest.fn().mockReturnThis();
+      const where = jest.fn().mockReturnThis();
+      const groupBy = jest.fn().mockReturnThis();
+      const having = jest.fn().mockReturnThis();
+      const getQuery = jest.fn().mockReturnValue("subquery");
+      const setParameters = jest.fn().mockReturnValue({});
+      const getParameters = jest.fn().mockReturnValue({});
+
+      const qb = {
+        leftJoinAndSelect,
+        orderBy,
+        take,
+        andWhere,
+        getMany,
+        clone,
+        select,
+        leftJoin,
+        where,
+        groupBy,
+        having,
+        getQuery,
+        setParameters,
+        getParameters,
+      };
+
+      mockRepo.createQueryBuilder.mockReturnValue(qb);
+
+      const options: VideoQueryOptionsInput = { actressCount: 2, first: 10 };
+      const result = await service.findAllConnection(options);
+
+      expect(mockRepo.createQueryBuilder).toHaveBeenCalledWith("video");
+      expect(andWhere).toHaveBeenCalledWith(
+        expect.stringContaining("video.id IN")
+      );
+      expect(result.edges.length).toBe(1);
+      expect(result.edges[0].node).toEqual(mockVideo1);
+      expect(result.totalCount).toBe(1);
+    });
+
+    it("should return empty result if no video matches the actressCount", async () => {
+      const getMany = jest.fn().mockResolvedValue([]);
+      const getCount = jest.fn().mockResolvedValue(0);
+      const orderBy = jest.fn().mockReturnThis();
+      const take = jest.fn().mockReturnThis();
+      const andWhere = jest.fn().mockReturnThis();
+      const leftJoinAndSelect = jest.fn().mockReturnThis();
+      const clone = jest.fn().mockReturnValue({
+        getCount,
+      });
+      const select = jest.fn().mockReturnThis();
+      const leftJoin = jest.fn().mockReturnThis();
+      const where = jest.fn().mockReturnThis();
+      const groupBy = jest.fn().mockReturnThis();
+      const having = jest.fn().mockReturnThis();
+      const getQuery = jest.fn().mockReturnValue("subquery");
+      const setParameters = jest.fn().mockReturnValue({});
+      const getParameters = jest.fn().mockReturnValue({});
+
+      const qb = {
+        leftJoinAndSelect,
+        orderBy,
+        take,
+        andWhere,
+        getMany,
+        clone,
+        select,
+        leftJoin,
+        where,
+        groupBy,
+        having,
+        getQuery,
+        setParameters,
+        getParameters,
+      };
+
+      mockRepo.createQueryBuilder.mockReturnValue(qb);
+
+      const options: VideoQueryOptionsInput = { actressCount: 5, first: 10 };
+      const result = await service.findAllConnection(options);
+
+      expect(andWhere).toHaveBeenCalledWith(
+        expect.stringContaining("video.id IN")
+      );
+      expect(result.edges.length).toBe(0);
+      expect(result.totalCount).toBe(0);
+    });
   });
 });

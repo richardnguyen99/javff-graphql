@@ -667,5 +667,59 @@ describe("VideoResolver", () => {
       expect(service.findAllConnection).toHaveBeenCalledWith(options);
       expect(result).toEqual(mockConnection);
     });
+
+    it("should filter videos by exact actressCount", async () => {
+      const mockVideo: Video = {
+        id: 10,
+        title: "Exact Actress Count Video",
+        actresses: [
+          { id: 1, name: "Aki" },
+          { id: 2, name: "Mio" },
+        ],
+      } as Video;
+      const mockEdge = {
+        cursor: Buffer.from("10").toString("base64"),
+        node: mockVideo,
+      };
+      const mockConnection: VideoConnection = {
+        edges: [mockEdge],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: mockEdge.cursor,
+          endCursor: mockEdge.cursor,
+        },
+        totalCount: 1,
+      };
+
+      const options: VideoQueryOptionsInput = { actressCount: 2, first: 10 };
+      mockVideoService.findAllConnection.mockResolvedValue(mockConnection);
+
+      const result = await resolver.videos(options);
+
+      expect(service.findAllConnection).toHaveBeenCalledWith(options);
+      expect(result).toEqual(mockConnection);
+    });
+
+    it("should return empty result if no video matches the actressCount", async () => {
+      const mockConnection: VideoConnection = {
+        edges: [],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+        totalCount: 0,
+      };
+
+      const options: VideoQueryOptionsInput = { actressCount: 5, first: 10 };
+      mockVideoService.findAllConnection.mockResolvedValue(mockConnection);
+
+      const result = await resolver.videos(options);
+
+      expect(service.findAllConnection).toHaveBeenCalledWith(options);
+      expect(result).toEqual(mockConnection);
+    });
   });
 });
