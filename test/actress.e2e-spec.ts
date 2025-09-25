@@ -653,6 +653,74 @@ describe("Actress Module (e2e)", () => {
       expect(names).toEqual(["Aki", "Mio"]);
     });
 
+    it("should paginate actresses with first and after", async () => {
+      const firstQuery = `#graphql
+        query {
+          actresses(options: { first: 1 }) {
+            totalCount
+            edges {
+              cursor
+              node { id name }
+            }
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+          }
+        }
+      `;
+      const firstRes = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: firstQuery })
+        .expect(200);
+
+      expect(firstRes.body.data.actresses.edges).toHaveLength(1);
+      expect(firstRes.body.data.actresses.pageInfo.hasNextPage).toBe(true);
+
+      const afterCursor = firstRes.body.data.actresses.pageInfo.endCursor;
+      const nextQuery = `#graphql
+        query {
+          actresses(options: { first: 1, after: "${afterCursor}" }) {
+            edges {
+              node { id name }
+            }
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+            }
+          }
+        }
+      `;
+      const nextRes = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query: nextQuery })
+        .expect(200);
+
+      expect(nextRes.body.data.actresses.edges).toHaveLength(1);
+      expect(nextRes.body.data.actresses.pageInfo.hasPreviousPage).toBe(true);
+    });
+
+    it("should return empty list for non-matching filter", async () => {
+      const query = `#graphql
+        query {
+          actresses(options: { cup: "ZZZ" }) {
+            totalCount
+            edges { node { id name } }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.actresses.totalCount).toBe(0);
+      expect(response.body.data.actresses.edges).toHaveLength(0);
+    });
+
     it("should fetch actress by id", async () => {
       const actress = await dataSource.getRepository(Actress).save({
         name: "Test Actress",
@@ -1052,7 +1120,7 @@ describe("Actress Module (e2e)", () => {
       `;
 
       const input = {
-        name: 12345, // invalid type
+        name: 12345,
         displayName: "Number Name",
       };
 
@@ -1108,7 +1176,7 @@ describe("Actress Module (e2e)", () => {
 
       const input = {
         name: "Invalid Bust",
-        bust: "not-a-number", // invalid type
+        bust: "not-a-number",
       };
 
       const response = await request(app.getHttpServer())
@@ -1648,7 +1716,7 @@ describe("Actress Module (e2e)", () => {
         }
       `;
 
-      const input = { name: "Test", birthday: "31-12-2000" }; // not ISO 8601
+      const input = { name: "Test", birthday: "31-12-2000" };
       const response = await request(app.getHttpServer())
         .post("/graphql")
         .send({ query: mutation, variables: { input } })
@@ -2499,7 +2567,7 @@ describe("Actress Module (e2e)", () => {
       expect(dupRes.body.data).toBeNull();
       expect(dupRes.body.errors).toBeDefined();
       expect(dupRes.body.errors[0].message.toLowerCase()).toContain(
-        "key actressid, attribute=164, profile already exists."
+        "key actressid, attribute=174, profile already exists."
       );
     });
 

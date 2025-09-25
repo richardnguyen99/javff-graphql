@@ -269,5 +269,544 @@ describe("Video Module (e2e)", () => {
       );
       expect(beforeResponse.body.data.videos.pageInfo.hasNextPage).toBe(false);
     });
+
+    it("should filter videos by actressIds", async () => {
+      const actressRecord = await dataSource.getRepository(Actress).findOneBy({
+        name: "Aki",
+      });
+      expect(actressRecord).toBeDefined();
+
+      const query = `#graphql
+        query {
+          videos(options: { actressIds: ["${actressRecord.id}"] }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+                actresses { id name }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(1);
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        code: "V001",
+        title: "First Video",
+        actresses: [{ id: actressRecord.id.toString(), name: "Aki" }],
+      });
+    });
+
+    it("should return an empty list when no videos match the actressIds filter", async () => {
+      const query = `#graphql
+        query {
+          videos(options: { actressIds: ["999999"] }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(0);
+      expect(response.body.data.videos.edges).toHaveLength(0);
+    });
+
+    it("should filter videos by genreIds", async () => {
+      const genreRecord = await dataSource.getRepository(Genre).findOneBy({
+        name: "Drama",
+      });
+      expect(genreRecord).toBeDefined();
+
+      const query = `#graphql
+        query {
+          videos(options: { genreIds: ["${genreRecord.id}"] }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+                genres { id name }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(1);
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        code: "V001",
+        title: "First Video",
+        genres: expect.arrayContaining([
+          { id: genreRecord.id.toString(), name: "Drama" },
+        ]),
+      });
+    });
+
+    it("should filter videos by makerId", async () => {
+      const makerRecord = await dataSource.getRepository(Maker).findOneBy({
+        name: "Test Maker",
+      });
+      expect(makerRecord).toBeDefined();
+
+      const query = `#graphql
+        query {
+          videos(options: { makerId: "${makerRecord.id}" }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+                maker { id name }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(1);
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        code: "V001",
+        title: "First Video",
+        maker: { id: makerRecord.id.toString(), name: "Test Maker" },
+      });
+    });
+
+    it("should filter videos by seriesId", async () => {
+      const seriesRecord = await dataSource.getRepository(Series).findOneBy({
+        name: "Test Series",
+      });
+      expect(seriesRecord).toBeDefined();
+
+      const query = `#graphql
+        query {
+          videos(options: { seriesId: "${seriesRecord.id}" }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+                series { id name }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(1);
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        code: "V001",
+        title: "First Video",
+        series: { id: seriesRecord.id.toString(), name: "Test Series" },
+      });
+    });
+
+    it("should filter videos by actressIds and genreIds", async () => {
+      const actressRecord = await dataSource.getRepository(Actress).findOneBy({
+        name: "Aki",
+      });
+      const genreRecord = await dataSource.getRepository(Genre).findOneBy({
+        name: "Drama",
+      });
+      expect(actressRecord).toBeDefined();
+      expect(genreRecord).toBeDefined();
+
+      const query = `#graphql
+        query {
+          videos(options: { actressIds: ["${actressRecord.id}"], genreIds: ["${genreRecord.id}"] }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+                actresses { id name }
+                genres { id name }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(1);
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        code: "V001",
+        title: "First Video",
+        actresses: [{ id: actressRecord.id.toString(), name: "Aki" }],
+        genres: expect.arrayContaining([
+          { id: genreRecord.id.toString(), name: "Drama" },
+        ]),
+      });
+    });
+
+    it("should filter videos by actressIds and makerId", async () => {
+      const actressRecord = await dataSource
+        .getRepository(Actress)
+        .findOneBy({ name: "Aki" });
+      const makerRecord = await dataSource
+        .getRepository(Maker)
+        .findOneBy({ name: "Test Maker" });
+
+      expect(actressRecord).toBeDefined();
+      expect(makerRecord).toBeDefined();
+
+      const query = `#graphql
+        query {
+          videos(options: {
+            actressIds: ["${actressRecord.id}"],
+            makerId: "${makerRecord.id}"
+          }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+                actresses { id name }
+                maker { id name }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(1);
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        code: "V001",
+        title: "First Video",
+        actresses: [{ id: actressRecord.id.toString(), name: "Aki" }],
+        maker: { id: makerRecord.id.toString(), name: "Test Maker" },
+      });
+    });
+
+    it("should filter videos by actressIds and seriesId", async () => {
+      const actressRecord = await dataSource
+        .getRepository(Actress)
+        .findOneBy({ name: "Aki" });
+      const seriesRecord = await dataSource
+        .getRepository(Series)
+        .findOneBy({ name: "Test Series" });
+
+      expect(actressRecord).toBeDefined();
+      expect(seriesRecord).toBeDefined();
+
+      const query = `#graphql
+        query {
+          videos(options: {
+            actressIds: ["${actressRecord.id}"],
+            seriesId: "${seriesRecord.id}"
+          }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+                actresses { id name }
+                series { id name }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(1);
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        code: "V001",
+        title: "First Video",
+        actresses: [{ id: actressRecord.id.toString(), name: "Aki" }],
+        series: { id: seriesRecord.id.toString(), name: "Test Series" },
+      });
+    });
+
+    it("should filter videos by genreIds and seriesId", async () => {
+      const genreRecord1 = await dataSource
+        .getRepository(Genre)
+        .findOneBy({ name: "Drama" });
+      const genreRecord2 = await dataSource
+        .getRepository(Genre)
+        .findOneBy({ name: "Action" });
+      const seriesRecord = await dataSource
+        .getRepository(Series)
+        .findOneBy({ name: "Test Series" });
+
+      expect(genreRecord1).toBeDefined();
+      expect(genreRecord2).toBeDefined();
+      expect(seriesRecord).toBeDefined();
+
+      const query = `#graphql
+        query {
+          videos(options: {
+            genreIds: ["${genreRecord1.id}", "${genreRecord2.id}"],
+            seriesId: "${seriesRecord.id}"
+          }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+                genres { id name }
+                series { id name }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(1);
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        code: "V001",
+        title: "First Video",
+        genres: expect.arrayContaining([
+          { id: genreRecord1.id.toString(), name: "Drama" },
+          { id: genreRecord2.id.toString(), name: "Action" },
+        ]),
+        series: { id: seriesRecord.id.toString(), name: "Test Series" },
+      });
+    });
+
+    it("should filter videos by makerId and seriesId", async () => {
+      const makerRecord = await dataSource
+        .getRepository(Maker)
+        .findOneBy({ name: "Test Maker" });
+      const seriesRecord = await dataSource
+        .getRepository(Series)
+        .findOneBy({ name: "Test Series" });
+
+      expect(makerRecord).toBeDefined();
+      expect(seriesRecord).toBeDefined();
+
+      const query = `#graphql
+        query {
+          videos(options: {
+            makerId: "${makerRecord.id}",
+            seriesId: "${seriesRecord.id}"
+          }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+                maker { id name }
+                series { id name }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(1);
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        code: "V001",
+        title: "First Video",
+        maker: { id: makerRecord.id.toString(), name: "Test Maker" },
+        series: { id: seriesRecord.id.toString(), name: "Test Series" },
+      });
+    });
+
+    it("should return empty when filtering by valid actressIds and invalid genreIds", async () => {
+      const actressRecord = await dataSource.getRepository(Actress).findOneBy({
+        name: "Aki",
+      });
+      expect(actressRecord).toBeDefined();
+
+      const query = `#graphql
+        query {
+          videos(options: { actressIds: ["${actressRecord.id}"], genreIds: ["999999"] }) {
+            totalCount
+            edges { node { id code title } }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(0);
+      expect(response.body.data.videos.edges).toHaveLength(0);
+    });
+
+    it("should filter videos by actressIds, genreIds, makerId, and seriesId", async () => {
+      const actressRecord = await dataSource
+        .getRepository(Actress)
+        .findOneBy({ name: "Aki" });
+      const genreRecord1 = await dataSource
+        .getRepository(Genre)
+        .findOneBy({ name: "Drama" });
+      const genreRecord2 = await dataSource
+        .getRepository(Genre)
+        .findOneBy({ name: "Action" });
+      const makerRecord = await dataSource
+        .getRepository(Maker)
+        .findOneBy({ name: "Test Maker" });
+      const seriesRecord = await dataSource
+        .getRepository(Series)
+        .findOneBy({ name: "Test Series" });
+
+      expect(actressRecord).toBeDefined();
+      expect(genreRecord1).toBeDefined();
+      expect(genreRecord2).toBeDefined();
+      expect(makerRecord).toBeDefined();
+      expect(seriesRecord).toBeDefined();
+
+      const query = `#graphql
+        query {
+          videos(options: {
+            actressIds: ["${actressRecord.id}"],
+            genreIds: ["${genreRecord1.id}", "${genreRecord2.id}"],
+            makerId: "${makerRecord.id}",
+            seriesId: "${seriesRecord.id}"
+          }) {
+            totalCount
+            edges {
+              node {
+                id
+                code
+                title
+                actresses { id name }
+                genres { id name }
+                maker { id name }
+                series { id name }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(1);
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        code: "V001",
+        title: "First Video",
+        actresses: [{ id: actressRecord.id.toString(), name: "Aki" }],
+        genres: expect.arrayContaining([
+          { id: genreRecord1.id.toString(), name: "Drama" },
+          { id: genreRecord2.id.toString(), name: "Action" },
+        ]),
+        maker: { id: makerRecord.id.toString(), name: "Test Maker" },
+        series: { id: seriesRecord.id.toString(), name: "Test Series" },
+      });
+    });
+
+    it("should return empty when one of the filters does not match", async () => {
+      const actressRecord = await dataSource
+        .getRepository(Actress)
+        .findOneBy({ name: "Aki" });
+      const genreRecord1 = await dataSource
+        .getRepository(Genre)
+        .findOneBy({ name: "Drama" });
+      const genreRecord2 = await dataSource
+        .getRepository(Genre)
+        .findOneBy({ name: "Action" });
+      const makerRecord = await dataSource
+        .getRepository(Maker)
+        .findOneBy({ name: "Test Maker" });
+
+      expect(actressRecord).toBeDefined();
+      expect(genreRecord1).toBeDefined();
+      expect(genreRecord2).toBeDefined();
+      expect(makerRecord).toBeDefined();
+
+      const query = `#graphql
+        query {
+          videos(options: {
+            actressIds: ["${actressRecord.id}"],
+            genreIds: ["${genreRecord1.id}", "${genreRecord2.id}"],
+            makerId: "${makerRecord.id}",
+            seriesId: "999999"
+          }) {
+            totalCount
+            edges { node { id code title } }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      expect(response.body.data.videos.totalCount).toBe(0);
+      expect(response.body.data.videos.edges).toHaveLength(0);
+    });
   });
 });

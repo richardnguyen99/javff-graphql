@@ -6,5 +6,18 @@
   },
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "sqltools.connections": [
+    {
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 55432,
+      "askForPassword": true,
+      "driver": "PostgreSQL",
+      "name": "javdb-graphql",
+      "database": "javdb",
+      "username": "postgres"
+    }
+  ]
 }

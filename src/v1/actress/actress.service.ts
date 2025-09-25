@@ -28,38 +28,6 @@ export class ActressService {
     private readonly actressImageRepository: Repository<ActressImage>
   ) {}
 
-  findAll(options?: ActressQueryOptionsInput): Promise<Actress[]> {
-    const qb = this.actressRepository.createQueryBuilder("actress");
-
-    if (options?.cup) {
-      qb.andWhere("actress.cup = :cup", { cup: options.cup });
-    }
-
-    if (options?.bust !== undefined) {
-      qb.andWhere("actress.bust >= :bust", { bust: options.bust });
-    }
-
-    if (options?.waist !== undefined) {
-      qb.andWhere("actress.waist >= :waist", { waist: options.waist });
-    }
-
-    if (options?.height !== undefined) {
-      qb.andWhere("actress.height >= :height", { height: options.height });
-    }
-
-    if (options?.hip !== undefined) {
-      qb.andWhere("actress.hip >= :hip", { hip: options.hip });
-    }
-
-    if (options?.year !== undefined) {
-      qb.andWhere("EXTRACT(YEAR FROM actress.birthday) <= :year", {
-        year: options.year,
-      });
-    }
-
-    return qb.getMany();
-  }
-
   findOne(id: number): Promise<Actress> {
     return this.actressRepository.findOne({
       where: { id },
