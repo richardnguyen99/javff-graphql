@@ -286,6 +286,8 @@ def bruteforce_worker(bruteforce_task, writer, is_retry_mode=False):
     video_id = bruteforce_task["video_id"]
     video_code = bruteforce_task["video_code"]
     original_dmm_id = bruteforce_task["original_dmm_id"]
+    first_transformed_dmm_id = bruteforce_task.get("first_transformed_dmm_id", "")
+    second_transformed_dmm_id = bruteforce_task.get("second_transformed_dmm_id", "")
     dmm_ids_to_try = bruteforce_task["dmm_ids_to_try"]
 
     print(f"[Thread] Starting bruteforce for video {video_id}")
@@ -315,9 +317,15 @@ def bruteforce_worker(bruteforce_task, writer, is_retry_mode=False):
             break
 
     if not found_data:
-        # Write to empty videos file (with retry mode flag)
         writer.write_empty_video(
-            [video_id, video_code, original_dmm_id, ""], is_retry_mode
+            [
+                video_id,
+                video_code,
+                original_dmm_id,
+                first_transformed_dmm_id,
+                second_transformed_dmm_id,
+            ],
+            is_retry_mode,
         )
         print(
             f"  [Thread] No sample data found for video {video_id} (bruteforce failed)"
@@ -341,9 +349,11 @@ def read_no_samples_tsv(file_path):
         reader = csv.DictReader(file, delimiter="\t")
         for row in reader:
             # Convert no-samples format to video format
+            # Handle both 'code' and 'display_id' column names for backward compatibility
+            display_id = row.get("display_id", "") or row.get("code", "")
             video = {
                 "id": row.get("id", ""),
-                "code": row.get("code", ""),
+                "display_id": display_id,
                 "dmm_id": row.get("dmm_id", ""),
             }
             videos.append(video)
@@ -526,6 +536,9 @@ def process_videos(videos, alias_lookup, writer, app_id, aff_id, is_retry_mode=F
                             "video_id": video_id,
                             "video_code": video_code,
                             "original_dmm_id": original_dmm_id,
+                            "first_transformed_dmm_id": first_transformed_dmm_id,
+                            "second_transformed_dmm_id": second_transformed_dmm_id,  # Add this
+                            "second_transformed_dmm_id": second_transformed_dmm_id,
                             "dmm_ids_to_try": dmm_ids_to_try,
                         }
 
@@ -546,6 +559,8 @@ def process_videos(videos, alias_lookup, writer, app_id, aff_id, is_retry_mode=F
                         "video_id": video_id,
                         "video_code": video_code,
                         "original_dmm_id": original_dmm_id,
+                        "first_transformed_dmm_id": first_transformed_dmm_id,
+                        "second_transformed_dmm_id": "",
                         "dmm_ids_to_try": dmm_ids_to_try,
                     }
 
@@ -738,7 +753,16 @@ def main():
             ensure_directory(retry_file)
             with open(retry_file, "w", encoding="utf-8", newline="") as f:
                 csv_writer = csv.writer(f, delimiter="\t")
-                csv_writer.writerow(["id", "code", "dmm_id", "transformed_dmm_id"])
+                # Use consistent header format
+                csv_writer.writerow(
+                    [
+                        "id",
+                        "display_id",
+                        "dmm_id",
+                        "first_transformed_dmm_id",
+                        "second_transformed_dmm_id",
+                    ]
+                )
 
         except FileNotFoundError:
             print(f"Error: {args.retry} file not found")
