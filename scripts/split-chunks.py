@@ -2,7 +2,7 @@ import os
 import sys
 
 
-def split_tsv_file(input_file, chunk_size_mb=50):
+def split_tsv_file(input_file, chunk_size_mb=40):
     """
     Split a TSV file into smaller chunks while preserving complete lines.
     Each chunk will have the header and maintain line integrity.
@@ -75,4 +75,4 @@ if __name__ == "__main__":
         sys.exit(1)
 
     input_file = sys.argv[1]
-    split_tsv_file(input_file, chunk_size_mb=50)
+    split_tsv_file(input_file, chunk_size_mb=40)
