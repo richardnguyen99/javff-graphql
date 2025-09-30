@@ -10,6 +10,7 @@ import re
 import argparse
 from typing import Dict, List, Tuple, Optional
 
+
 def load_actress_data(actress_csv_path: str) -> Dict[str, int]:
     """
     Load actress data from CSV and create a mapping from name to ID.
@@ -23,12 +24,12 @@ def load_actress_data(actress_csv_path: str) -> Dict[str, int]:
     actress_name_to_id = {}
 
     try:
-        with open(actress_csv_path, 'r', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
+        with open(actress_csv_path, "r", encoding="utf-8") as file:
+            reader = csv.DictReader(file, delimiter="\t")
             for row in reader:
-                actress_id = int(row['id'])
-                name = row['name'].strip()
-                display_name = row['display_name'].strip()
+                actress_id = int(row["id"])
+                name = row["name"].strip()
+                display_name = row["display_name"].strip()
 
                 # Add both name and display_name to the mapping
                 if name:
@@ -46,6 +47,7 @@ def load_actress_data(actress_csv_path: str) -> Dict[str, int]:
     print(f"Loaded {len(set(actress_name_to_id.values()))} unique actresses")
     return actress_name_to_id
 
+
 def load_genre_data(genre_csv_path: str) -> Dict[str, int]:
     """
     Load genre data from CSV and create a mapping from name to ID.
@@ -59,12 +61,12 @@ def load_genre_data(genre_csv_path: str) -> Dict[str, int]:
     genre_name_to_id = {}
 
     try:
-        with open(genre_csv_path, 'r', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
+        with open(genre_csv_path, "r", encoding="utf-8") as file:
+            reader = csv.DictReader(file, delimiter="\t")
             for row in reader:
-                genre_id = int(row['id'])
-                name = row['name'].strip()
-                display_name = row.get('display_name', '').strip()
+                genre_id = int(row["id"])
+                name = row["name"].strip()
+                display_name = row.get("display_name", "").strip()
 
                 # Add both name and display_name to the mapping
                 if name:
@@ -82,6 +84,7 @@ def load_genre_data(genre_csv_path: str) -> Dict[str, int]:
     print(f"Loaded {len(set(genre_name_to_id.values()))} unique genres")
     return genre_name_to_id
 
+
 def load_maker_data(maker_csv_path: str) -> Dict[str, int]:
     """
     Load maker data from CSV and create a mapping from name to ID.
@@ -95,12 +98,13 @@ def load_maker_data(maker_csv_path: str) -> Dict[str, int]:
     maker_name_to_id = {}
 
     try:
-        with open(maker_csv_path, 'r', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
+        with open(maker_csv_path, "r", encoding="utf-8") as file:
+            reader = csv.DictReader(file, delimiter="\t")
+
             for row in reader:
-                maker_id = int(row['id'])
-                name = row['name'].strip()
-                display_name = row.get('display_name', '').strip()
+                maker_id = int(row["id"])
+                name = row["name"].strip()
+                display_name = row.get("display_name", "").strip()
 
                 if name:
                     maker_name_to_id[name] = maker_id
@@ -117,18 +121,19 @@ def load_maker_data(maker_csv_path: str) -> Dict[str, int]:
     print(f"Loaded {len(set(maker_name_to_id.values()))} unique makers")
     return maker_name_to_id
 
+
 def load_maker_alias_table(alias_csv_path: str) -> Dict[str, Tuple[str, int]]:
     """
     Load maker alias table from TSV and return a mapping from alias name to (canonical name, id).
     """
     alias_map = {}
     try:
-        with open(alias_csv_path, 'r', encoding='utf-8') as file:
-            reader = csv.DictReader(file, delimiter='\t')
+        with open(alias_csv_path, "r", encoding="utf-8") as file:
+            reader = csv.DictReader(file, delimiter="\t")
             for row in reader:
-                name = row['name'].strip()
-                alias = row['alias'].strip()
-                alias_id = int(row['alias_id'])
+                name = row["name"].strip()
+                alias = row["alias"].strip()
+                alias_id = int(row["alias_id"])
                 # Map both alias and canonical name to (canonical name, id)
                 if alias:
                     alias_map[alias] = (name, alias_id)
@@ -140,18 +145,19 @@ def load_maker_alias_table(alias_csv_path: str) -> Dict[str, Tuple[str, int]]:
     print(f"Loaded {len(alias_map)} maker aliases")
     return alias_map
 
+
 def load_genre_alias_table(alias_csv_path: str) -> Dict[str, Tuple[str, int]]:
     """
     Load genre alias table from TSV and return a mapping from alias name to (canonical name, id).
     """
     alias_map = {}
     try:
-        with open(alias_csv_path, 'r', encoding='utf-8') as file:
-            reader = csv.DictReader(file, delimiter='\t')
+        with open(alias_csv_path, "r", encoding="utf-8") as file:
+            reader = csv.DictReader(file, delimiter="\t")
             for row in reader:
-                name = row['name'].strip()
-                alias = row['alias'].strip()
-                alias_id = int(row['alias_id'])
+                name = row["name"].strip()
+                alias = row["alias"].strip()
+                alias_id = int(row["alias_id"])
                 if alias:
                     alias_map[alias] = (name, alias_id)
                 if name:
@@ -162,18 +168,19 @@ def load_genre_alias_table(alias_csv_path: str) -> Dict[str, Tuple[str, int]]:
     print(f"Loaded {len(alias_map)} genre aliases")
     return alias_map
 
+
 def load_series_alias_table(alias_csv_path: str) -> Dict[str, Tuple[str, int]]:
     """
     Load series alias table from TSV and return a mapping from alias name to (canonical name, id).
     """
     alias_map = {}
     try:
-        with open(alias_csv_path, 'r', encoding='utf-8') as file:
-            reader = csv.DictReader(file, delimiter='\t')
+        with open(alias_csv_path, "r", encoding="utf-8") as file:
+            reader = csv.DictReader(file, delimiter="\t")
             for row in reader:
-                name = row['name'].strip()
-                alias = row['alias'].strip()
-                alias_id = int(row['alias_id'])
+                name = row["name"].strip()
+                alias = row["alias"].strip()
+                alias_id = int(row["alias_id"])
                 if alias:
                     alias_map[alias] = (name, alias_id)
                 if name:
@@ -183,6 +190,7 @@ def load_series_alias_table(alias_csv_path: str) -> Dict[str, Tuple[str, int]]:
         sys.exit(1)
     print(f"Loaded {len(alias_map)} series aliases")
     return alias_map
+
 
 def parse_comma_separated_string(input_string: str) -> List[str]:
     """
@@ -194,15 +202,16 @@ def parse_comma_separated_string(input_string: str) -> List[str]:
     Returns:
         List of individual items
     """
-    if not input_string or input_string.strip() == '':
+    if not input_string or input_string.strip() == "":
         return []
 
     # Split by comma and clean up each item
-    items = [item.strip() for item in input_string.split(',')]
+    items = [item.strip() for item in input_string.split(",")]
     # Filter out empty strings
     items = [item for item in items if item]
 
     return items
+
 
 def find_item_id(item_name: str, item_mapping: Dict[str, int]) -> Optional[int]:
     """
@@ -225,11 +234,12 @@ def find_item_id(item_name: str, item_mapping: Dict[str, int]) -> Optional[int]:
             return item_id
 
     # Try partial match (for names with parentheses or variations)
-    item_name_clean = re.sub(r'\([^)]*\)', '', item_name).strip()
+    item_name_clean = re.sub(r"\([^)]*\)", "", item_name).strip()
     if item_name_clean != item_name and item_name_clean in item_mapping:
         return item_mapping[item_name_clean]
 
     return None
+
 
 def create_video_dataset(
     video_tsv_path: str,
@@ -237,7 +247,7 @@ def create_video_dataset(
     maker_mapping: Dict[str, int],
     series_mapping: Dict[str, int],
     maker_alias_map: Dict[str, Tuple[str, int]],
-    series_alias_map: Dict[str, Tuple[str, int]]
+    series_alias_map: Dict[str, Tuple[str, int]],
 ):
     """
     Create a new video TSV dataset based on the Video entity structure,
@@ -247,24 +257,25 @@ def create_video_dataset(
 
     # Add maker_id and series_id to the output columns
     output_columns = [
-        'id',           # PrimaryGeneratedColumn
-        'code',         # display_id from input
-        'dmm_id',       # dmm_id from input
-        'title',        # title from input
-        'label',        # label (not in input, will be null)
-        'release_date', # release_date from input
-        'length',       # length (not in input, will be null)
-        'description',  # description from input
-        'maker_id',     # NEW: maker_id
-        'series_id',    # NEW: series_id
+        "id",  # PrimaryGeneratedColumn
+        "code",  # display_id from input
+        "dmm_id",  # dmm_id from input
+        "title",  # title from input
+        "label",  # label (not in input, will be null)
+        "release_date",  # release_date from input
+        "length",  # length (not in input, will be null)
+        "description",  # description from input
+        "maker_id",  # NEW: maker_id
+        "series_id",  # NEW: series_id
     ]
 
     try:
-        with open(video_tsv_path, 'r', encoding='utf-8') as input_file, \
-             open(output_path, 'w', encoding='utf-8', newline='') as output_file:
+        with open(video_tsv_path, "r", encoding="utf-8") as input_file, open(
+            output_path, "w", encoding="utf-8", newline=""
+        ) as output_file:
 
-            reader = csv.DictReader(input_file, delimiter='\t')
-            writer = csv.writer(output_file, delimiter='\t')
+            reader = csv.DictReader(input_file, delimiter="\t")
+            writer = csv.writer(output_file, delimiter="\t")
 
             # Write header
             writer.writerow(output_columns)
@@ -274,7 +285,7 @@ def create_video_dataset(
                 video_count += 1
 
                 # Lookup maker_id
-                maker_name = row.get('makers', '').strip()
+                maker_name = row.get("makers", "").strip()
                 maker_id = None
                 if maker_name:
                     maker_id = find_item_id(maker_name, maker_mapping)
@@ -284,7 +295,7 @@ def create_video_dataset(
                             _, maker_id = alias_result
 
                 # Lookup series_id
-                series_name = row.get('series', '').strip()
+                series_name = row.get("series", "").strip()
                 series_id = None
                 if series_name:
                     series_id = find_item_id(series_name, series_mapping)
@@ -296,20 +307,22 @@ def create_video_dataset(
                 # Map input columns to output columns
                 output_row = [
                     video_count,  # Auto-increment ID
-                    row.get('display_id', '').strip() or None,  # code (display_id)
-                    row.get('dmm_id', '').strip() or None,      # dmm_id
-                    row.get('title', '').strip() or '',         # title (required)
-                    row.get('label', '').strip() or None,       # label
-                    row.get('release_date', '').strip() or None, # release_date
-                    row.get('length', '').strip() or None,      # length
-                    row.get('description', '').strip() or None, # description
-                    maker_id,                                   # NEW: maker_id
-                    series_id,                                  # NEW: series_id
+                    row.get("display_id", "").strip() or None,  # code (display_id)
+                    row.get("dmm_id", "").strip() or None,  # dmm_id
+                    row.get("title", "").strip() or "",  # title (required)
+                    row.get("label", "").strip() or None,  # label
+                    row.get("release_date", "").strip() or None,  # release_date
+                    row.get("length", "").strip() or None,  # length
+                    row.get("description", "").strip() or None,  # description
+                    maker_id,  # NEW: maker_id
+                    series_id,  # NEW: series_id
                 ]
 
                 writer.writerow(output_row)
 
-        print(f"✅ Successfully created video dataset with {video_count} videos at: {output_path}")
+        print(
+            f"✅ Successfully created video dataset with {video_count} videos at: {output_path}"
+        )
 
     except FileNotFoundError:
         print(f"Error: Video TSV file '{video_tsv_path}' not found.")
@@ -318,7 +331,22 @@ def create_video_dataset(
         print(f"Error creating video dataset: {e}")
         sys.exit(1)
 
-def process_video_data(video_tsv_path: str, actress_mapping: Dict[str, int], genre_mapping: Dict[str, int], maker_mapping: Dict[str, int], series_mapping: Dict[str, int], maker_alias_map: Dict[str, Tuple[str, int]], genre_alias_map: Dict[str, Tuple[str, int]], series_alias_map: Dict[str, Tuple[str, int]]) -> Tuple[List[Tuple[int, int]], List[Tuple[int, int]], List[Tuple[int, int]], List[Tuple[int, int]]]:
+
+def process_video_data(
+    video_tsv_path: str,
+    actress_mapping: Dict[str, int],
+    genre_mapping: Dict[str, int],
+    maker_mapping: Dict[str, int],
+    series_mapping: Dict[str, int],
+    maker_alias_map: Dict[str, Tuple[str, int]],
+    genre_alias_map: Dict[str, Tuple[str, int]],
+    series_alias_map: Dict[str, Tuple[str, int]],
+) -> Tuple[
+    List[Tuple[int, int]],
+    List[Tuple[int, int]],
+    List[Tuple[int, int]],
+    List[Tuple[int, int]],
+]:
     """
     Process video TSV file and extract video relationships.
 
@@ -344,15 +372,15 @@ def process_video_data(video_tsv_path: str, actress_mapping: Dict[str, int], gen
     total_genres_processed = 0
 
     try:
-        with open(video_tsv_path, 'r', encoding='utf-8') as file:
-            reader = csv.DictReader(file, delimiter='\t')
+        with open(video_tsv_path, "r", encoding="utf-8") as file:
+            reader = csv.DictReader(file, delimiter="\t")
             for row_num, row in enumerate(reader, start=1):
-                video_id = int(row['id'])
-                display_id = row.get('display_id', '').strip()
-                actress_string = row.get('actress', '').strip()
-                genre_string = row.get('genre', '').strip()
-                maker_name = row.get('makers', '').strip()
-                series_name = row.get('series', '').strip()
+                video_id = int(row["id"])
+                display_id = row.get("display_id", "").strip()
+                actress_string = row.get("actress", "").strip()
+                genre_string = row.get("genre", "").strip()
+                maker_name = row.get("makers", "").strip()
+                series_name = row.get("series", "").strip()
 
                 # Actress processing (same as before)
                 actresses = parse_comma_separated_string(actress_string)
@@ -418,14 +446,24 @@ def process_video_data(video_tsv_path: str, actress_mapping: Dict[str, int], gen
         sys.exit(1)
 
     # Save not found items
-    save_not_found_items(not_found_actresses, ".tmp/video_actresses_not_found.tsv", "Actresses")
+    save_not_found_items(
+        not_found_actresses, ".tmp/video_actresses_not_found.tsv", "Actresses"
+    )
     save_not_found_items(not_found_genres, ".tmp/video_genres_not_found.tsv", "Genres")
     save_not_found_items(not_found_makers, ".tmp/video_makers_not_found.tsv", "Makers")
     save_not_found_items(not_found_series, ".tmp/video_series_not_found.tsv", "Series")
 
-    return actress_relationships, genre_relationships, maker_relationships, series_relationships
+    return (
+        actress_relationships,
+        genre_relationships,
+        maker_relationships,
+        series_relationships,
+    )
 
-def save_not_found_items(not_found_items: Dict[str, List[str]], output_path: str, item_type: str):
+
+def save_not_found_items(
+    not_found_items: Dict[str, List[str]], output_path: str, item_type: str
+):
     """
     Save not found items to TSV file.
 
@@ -442,27 +480,34 @@ def save_not_found_items(not_found_items: Dict[str, List[str]], output_path: str
     print(f"{'='*60}")
 
     # Sort by frequency (most common first)
-    sorted_not_found = sorted(not_found_items.items(),
-                            key=lambda x: len(x[1]), reverse=True)
+    sorted_not_found = sorted(
+        not_found_items.items(), key=lambda x: len(x[1]), reverse=True
+    )
 
     for i, (item_name, video_ids) in enumerate(sorted_not_found[:20]):  # Show top 20
-        print(f"{i+1:2d}. '{item_name}' (appears in {len(video_ids)} video{'s' if len(video_ids) > 1 else ''})")
+        print(
+            f"{i+1:2d}. '{item_name}' (appears in {len(video_ids)} video{'s' if len(video_ids) > 1 else ''})"
+        )
         if len(video_ids) <= 3:
             print(f"    Videos: {', '.join(video_ids)}")
         else:
-            print(f"    Videos: {', '.join(video_ids[:3])}... and {len(video_ids)-3} more")
+            print(
+                f"    Videos: {', '.join(video_ids[:3])}... and {len(video_ids)-3} more"
+            )
 
     if len(not_found_items) > 20:
-        print(f"    ... and {len(not_found_items) - 20} more {item_type.lower()} not shown")
+        print(
+            f"    ... and {len(not_found_items) - 20} more {item_type.lower()} not shown"
+        )
 
     try:
-        with open(output_path, 'w', encoding='utf-8', newline='') as f:
-            writer = csv.writer(f, delimiter='\t')
-            writer.writerow(['name', 'not_found_videos'])
+        with open(output_path, "w", encoding="utf-8", newline="") as f:
+            writer = csv.writer(f, delimiter="\t")
+            writer.writerow(["name", "not_found_videos"])
 
             for item_name, video_ids in sorted_not_found:
                 # Join video IDs without spaces after commas
-                videos_str = ','.join(video_ids)
+                videos_str = ",".join(video_ids)
                 writer.writerow([item_name, videos_str])
 
         print(f"\n📄 Complete {item_type.lower()} list saved to: {output_path}")
@@ -470,7 +515,10 @@ def save_not_found_items(not_found_items: Dict[str, List[str]], output_path: str
     except Exception as e:
         print(f"Error saving not found {item_type.lower()} TSV: {e}")
 
-def write_relationships(relationships: List[Tuple[int, int]], output_path: str, relationship_type: str):
+
+def write_relationships(
+    relationships: List[Tuple[int, int]], output_path: str, relationship_type: str
+):
     """
     Write relationships to TSV file.
 
@@ -480,23 +528,28 @@ def write_relationships(relationships: List[Tuple[int, int]], output_path: str, 
         relationship_type: Type of relationship (for column naming)
     """
     try:
-        with open(output_path, 'w', encoding='utf-8', newline='') as file:
-            writer = csv.writer(file, delimiter='\t')
+        with open(output_path, "w", encoding="utf-8", newline="") as file:
+            writer = csv.writer(file, delimiter="\t")
 
             # Write header
-            writer.writerow(['video_id', f'{relationship_type}_id'])
+            writer.writerow(["video_id", f"{relationship_type}_id"])
 
             # Write relationships
             for video_id, item_id in relationships:
                 writer.writerow([video_id, item_id])
 
-        print(f"\nSuccessfully wrote {len(relationships)} {relationship_type} relationships to '{output_path}'")
+        print(
+            f"\nSuccessfully wrote {len(relationships)} {relationship_type} relationships to '{output_path}'"
+        )
 
     except Exception as e:
         print(f"Error writing {relationship_type} output file: {e}")
         sys.exit(1)
 
-def write_video_maker_relationships(relationships: List[Tuple[int, int]], output_path: str):
+
+def write_video_maker_relationships(
+    relationships: List[Tuple[int, int]], output_path: str
+):
     """
     Write video-maker relationships to TSV file.
 
@@ -505,15 +558,18 @@ def write_video_maker_relationships(relationships: List[Tuple[int, int]], output
         output_path: Path to output TSV file
     """
     try:
-        with open(output_path, 'w', encoding='utf-8', newline='') as file:
-            writer = csv.writer(file, delimiter='\t')
-            writer.writerow(['video_id', 'maker_id'])
+        with open(output_path, "w", encoding="utf-8", newline="") as file:
+            writer = csv.writer(file, delimiter="\t")
+            writer.writerow(["video_id", "maker_id"])
             for video_id, maker_id in relationships:
                 writer.writerow([video_id, maker_id])
-        print(f"\nSuccessfully wrote {len(relationships)} maker relationships to '{output_path}'")
+        print(
+            f"\nSuccessfully wrote {len(relationships)} maker relationships to '{output_path}'"
+        )
     except Exception as e:
         print(f"Error writing maker output file: {e}")
         sys.exit(1)
+
 
 def load_series_data(series_csv_path: str) -> Dict[str, int]:
     """
@@ -528,12 +584,14 @@ def load_series_data(series_csv_path: str) -> Dict[str, int]:
     series_name_to_id = {}
 
     try:
-        with open(series_csv_path, 'r', encoding='utf-8') as file:
-            reader = csv.DictReader(file, delimiter='|')  # Note: series.csv uses | delimiter
+        with open(series_csv_path, "r", encoding="utf-8") as file:
+            reader = csv.DictReader(
+                file, delimiter="\t"
+            )  # Note: series.csv uses | delimiter
             for row in reader:
-                series_id = int(row['id'])
-                name = row['name'].strip()
-                ruby = row.get('ruby', '').strip()
+                series_id = int(row["id"])
+                name = row["name"].strip()
+                ruby = row.get("ruby", "").strip()
 
                 # Add both name and ruby to the mapping
                 if name:
@@ -551,24 +609,47 @@ def load_series_data(series_csv_path: str) -> Dict[str, int]:
     print(f"Loaded {len(set(series_name_to_id.values()))} unique series")
     return series_name_to_id
 
+
 def main():
     """Main function to process the files and create relationships."""
-    parser = argparse.ArgumentParser(description='Create video relationships and datasets')
-    parser.add_argument('video_tsv', help='Path to the video TSV file')
-    parser.add_argument('actress_csv', help='Path to the actress CSV file')
-    parser.add_argument('genre_csv', help='Path to the genre CSV file')
-    parser.add_argument('maker_csv', help='Path to the maker CSV file')
-    parser.add_argument('series_csv', help='Path to the series CSV file')
-    parser.add_argument('--create-video-dataset', action='store_true',
-                       help='Create a new video TSV dataset based on Video entity structure')
-    parser.add_argument('--video-output', default='.tmp/videos.tsv',
-                       help='Output path for the new video dataset (default: .tmp/videos.tsv)')
-    parser.add_argument('--maker-alias', dest='maker_alias', default=None, help='Optional path to maker alias TSV file')
-    parser.add_argument('--genre-alias', dest='genre_alias', default=None, help='Optional path to genre alias TSV file')
-    parser.add_argument('--series-alias', dest='series_alias', default=None, help='Optional path to series alias TSV file')
+    parser = argparse.ArgumentParser(
+        description="Create video relationships and datasets"
+    )
+    parser.add_argument("video_tsv", help="Path to the video TSV file")
+    parser.add_argument("actress_csv", help="Path to the actress CSV file")
+    parser.add_argument("genre_csv", help="Path to the genre CSV file")
+    parser.add_argument("maker_csv", help="Path to the maker CSV file")
+    parser.add_argument("series_csv", help="Path to the series CSV file")
+    parser.add_argument(
+        "--create-video-dataset",
+        action="store_true",
+        help="Create a new video TSV dataset based on Video entity structure",
+    )
+    parser.add_argument(
+        "--video-output",
+        default=".tmp/videos.tsv",
+        help="Output path for the new video dataset (default: .tmp/videos.tsv)",
+    )
+    parser.add_argument(
+        "--maker-alias",
+        dest="maker_alias",
+        default=None,
+        help="Optional path to maker alias TSV file",
+    )
+    parser.add_argument(
+        "--genre-alias",
+        dest="genre_alias",
+        default=None,
+        help="Optional path to genre alias TSV file",
+    )
+    parser.add_argument(
+        "--series-alias",
+        dest="series_alias",
+        default=None,
+        help="Optional path to series alias TSV file",
+    )
 
     args = parser.parse_args()
-
 
     print("Loading actress data...")
     actress_mapping = load_actress_data(args.actress_csv)
@@ -597,7 +678,6 @@ def main():
         print("Loading series alias table...")
         series_alias_map = load_series_alias_table(args.series_alias)
 
-
     # Create video dataset if requested
     if args.create_video_dataset:
         create_video_dataset(
@@ -606,12 +686,24 @@ def main():
             maker_mapping,
             series_mapping,
             maker_alias_map,
-            series_alias_map
+            series_alias_map,
         )
 
     print("Processing video data...")
-    actress_relationships, genre_relationships, maker_relationships, series_relationships = process_video_data(
-        args.video_tsv, actress_mapping, genre_mapping, maker_mapping, series_mapping, maker_alias_map, genre_alias_map, series_alias_map
+    (
+        actress_relationships,
+        genre_relationships,
+        maker_relationships,
+        series_relationships,
+    ) = process_video_data(
+        args.video_tsv,
+        actress_mapping,
+        genre_mapping,
+        maker_mapping,
+        series_mapping,
+        maker_alias_map,
+        genre_alias_map,
+        series_alias_map,
     )
 
     print("Writing relationships...")
@@ -627,11 +719,16 @@ def main():
     print(f"Genre relationships created: {len(genre_relationships)}")
     print(f"Maker relationships created: {len(maker_relationships)}")
     print(f"Series relationships created: {len(series_relationships)}")
-    print(f"Total relationships created: {len(actress_relationships) + len(genre_relationships) + len(maker_relationships) + len(series_relationships)}")
-    print(f"Output files: .tmp/video-actress.tsv, .tmp/video-genre.tsv, .tmp/video-maker.tsv, .tmp/video-series.tsv")
+    print(
+        f"Total relationships created: {len(actress_relationships) + len(genre_relationships) + len(maker_relationships) + len(series_relationships)}"
+    )
+    print(
+        f"Output files: .tmp/video-actress.tsv, .tmp/video-genre.tsv, .tmp/video-maker.tsv, .tmp/video-series.tsv"
+    )
 
     if args.create_video_dataset:
         print(f"Video dataset: {args.video_output}")
+
 
 if __name__ == "__main__":
     main()
