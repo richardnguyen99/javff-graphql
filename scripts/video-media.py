@@ -49,11 +49,25 @@ class ThreadSafeWriter:
             (self.sample_videos_file, ["video_id", "attribute", "url"]),
             (
                 self.empty_videos_file,
-                ["id", "display_id", "dmm_id", "transformed_dmm_id"],
+                [
+                    "id",
+                    "display_id",
+                    "dmm_id",
+                    "first_transformed_dmm_id",
+                    "second_transformed_dmm_id",
+                    "title",
+                ],
             ),
             (
                 self.failed_requests_file,
-                ["id", "display_id", "dmm_id", "transformed_dmm_id"],
+                [
+                    "id",
+                    "display_id",
+                    "dmm_id",
+                    "first_transformed_dmm_id",
+                    "second_transformed_dmm_id",
+                    "title",
+                ],
             ),
         ]
 
@@ -162,14 +176,14 @@ def load_alias_lookup(file_path):
             reader = csv.DictReader(file, delimiter="\t")
             for row in reader:
                 alias = row.get("alias", "").strip()
-                prefix = row.get("prefix", "").strip()
-                suffix = row.get("suffix", "").strip()
+                prefix_1 = row.get("prefix_1", "").strip()
+                suffix_1 = row.get("suffix_1", "").strip()
                 prefix_2 = row.get("prefix_2", "").strip()
                 suffix_2 = row.get("suffix_2", "").strip()
                 if alias:
                     aliases[alias] = {
-                        "prefix": prefix,
-                        "suffix": suffix,
+                        "prefix_1": prefix_1,
+                        "suffix_1": suffix_1,
                         "prefix_2": prefix_2,
                         "suffix_2": suffix_2,
                     }
@@ -206,8 +220,8 @@ def transform_dmm_id(dmm_id, alias_lookup, use_second_transform=False):
             transform_type = "second"
         else:
             # Use prefix and suffix for first transformation
-            prefix = alias_info.get("prefix", "")
-            suffix = alias_info.get("suffix", "")
+            prefix = alias_info.get("prefix_1", "")
+            suffix = alias_info.get("suffix_1", "")
             transform_type = "first"
 
         # Only transform if we have a prefix or suffix
@@ -288,6 +302,7 @@ def bruteforce_worker(bruteforce_task, writer, is_retry_mode=False):
     original_dmm_id = bruteforce_task["original_dmm_id"]
     first_transformed_dmm_id = bruteforce_task.get("first_transformed_dmm_id", "")
     second_transformed_dmm_id = bruteforce_task.get("second_transformed_dmm_id", "")
+    title = bruteforce_task.get("title", "")  # Get title from task
     dmm_ids_to_try = bruteforce_task["dmm_ids_to_try"]
 
     print(f"[Thread] Starting bruteforce for video {video_id}")
@@ -324,6 +339,7 @@ def bruteforce_worker(bruteforce_task, writer, is_retry_mode=False):
                 original_dmm_id,
                 first_transformed_dmm_id,
                 second_transformed_dmm_id,
+                title,
             ],
             is_retry_mode,
         )
@@ -355,6 +371,7 @@ def read_no_samples_tsv(file_path):
                 "id": row.get("id", ""),
                 "display_id": display_id,
                 "dmm_id": row.get("dmm_id", ""),
+                "title": row.get("title", ""),  # Include title from retry file
             }
             videos.append(video)
     return videos
@@ -440,6 +457,23 @@ def process_video_data(video_id, api_response):
     return video_covers_data, sample_images_data, sample_videos_data
 
 
+def extract_title_from_api_response(api_response):
+    """Extract title from API response if available"""
+    try:
+        if not is_api_success(api_response):
+            return ""
+
+        items = api_response.get("result", {}).get("items", [])
+        if not items:
+            return ""
+
+        item = items[0]
+        return item.get("title", "")
+    except Exception as e:
+        print(f"Error extracting title from API response: {e}")
+        return ""
+
+
 def process_videos(videos, alias_lookup, writer, app_id, aff_id, is_retry_mode=False):
     """Process a list of videos"""
     batch_covers = []
@@ -458,6 +492,7 @@ def process_videos(videos, alias_lookup, writer, app_id, aff_id, is_retry_mode=F
             video_id = video.get("id")
             video_code = video.get("display_id", "")
             original_dmm_id = video.get("dmm_id")
+            existing_title = video.get("title", "")  # For retry mode
 
             if not video_id or not original_dmm_id:
                 print(f"Skipping video at row {i+1}: missing id or dmm_id")
@@ -466,6 +501,8 @@ def process_videos(videos, alias_lookup, writer, app_id, aff_id, is_retry_mode=F
             print(
                 f"Processing video {i+1}/{len(videos)}: {video_id} (dmm_id: {original_dmm_id})"
             )
+
+            title = existing_title  # Start with existing title (if any)
 
             # Step 1: Try first transformation
             first_transformed_dmm_id = transform_dmm_id(
@@ -481,6 +518,10 @@ def process_videos(videos, alias_lookup, writer, app_id, aff_id, is_retry_mode=F
 
             print(f"  Trying first API request with dmm_id: {dmm_id_to_use}")
             api_response = fetch_dmm_api(app_id, aff_id, dmm_id_to_use)
+
+            # Extract title from first API response if not already available
+            if not title and api_response:
+                title = extract_title_from_api_response(api_response)
 
             if is_api_success(api_response):
                 # First attempt successful
@@ -511,6 +552,10 @@ def process_videos(videos, alias_lookup, writer, app_id, aff_id, is_retry_mode=F
                         app_id, aff_id, second_transformed_dmm_id
                     )
 
+                    # Extract title from second API response if not already available
+                    if not title and api_response:
+                        title = extract_title_from_api_response(api_response)
+
                     if is_api_success(api_response):
                         # Second attempt successful
                         covers, sample_images, sample_videos = process_video_data(
@@ -537,8 +582,8 @@ def process_videos(videos, alias_lookup, writer, app_id, aff_id, is_retry_mode=F
                             "video_code": video_code,
                             "original_dmm_id": original_dmm_id,
                             "first_transformed_dmm_id": first_transformed_dmm_id,
-                            "second_transformed_dmm_id": second_transformed_dmm_id,  # Add this
                             "second_transformed_dmm_id": second_transformed_dmm_id,
+                            "title": title,
                             "dmm_ids_to_try": dmm_ids_to_try,
                         }
 
@@ -561,6 +606,7 @@ def process_videos(videos, alias_lookup, writer, app_id, aff_id, is_retry_mode=F
                         "original_dmm_id": original_dmm_id,
                         "first_transformed_dmm_id": first_transformed_dmm_id,
                         "second_transformed_dmm_id": "",
+                        "title": title,
                         "dmm_ids_to_try": dmm_ids_to_try,
                     }
 
@@ -753,7 +799,7 @@ def main():
             ensure_directory(retry_file)
             with open(retry_file, "w", encoding="utf-8", newline="") as f:
                 csv_writer = csv.writer(f, delimiter="\t")
-                # Use consistent header format
+                # Use consistent header format with title
                 csv_writer.writerow(
                     [
                         "id",
@@ -761,6 +807,7 @@ def main():
                         "dmm_id",
                         "first_transformed_dmm_id",
                         "second_transformed_dmm_id",
+                        "title",
                     ]
                 )
 
