@@ -5,10 +5,8 @@ import { VideoResolver } from "src/v1/video/video.resolver";
 import { VideoService } from "src/v1/video/video.service";
 import { Video } from "src/v1/video/video.entity";
 import { VideoCover } from "src/v1/video/video-cover.entity";
-
 import { VideoConnection } from "src/v1/video/dto/video-connection.output";
 import { VideoQueryOptionsInput } from "src/v1/video/dto/video-query-options.input";
-import { Repository } from "typeorm";
 
 describe("VideoResolver", () => {
   let resolver: VideoResolver;
