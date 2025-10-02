@@ -13,21 +13,6 @@ type ActressImage {
   attribute: String!
 }
 
-type Series {
-  id: ID!
-  name: String!
-  ruby: String
-  dmmId: Int
-}
-
-type Maker {
-  id: ID!
-  dmmId: Int!
-  name: String!
-  ruby: String
-  videos: [Video!]
-}
-
 type Genre {
   id: ID!
   dmmId: Int
@@ -40,6 +25,31 @@ type Genre {
 
   """English display name of the genre"""
   displayName: String
+  videos: [Video!]
+}
+
+type VideoCover {
+  id: ID!
+
+  """The attribute of the cover image, e.g., 'front', 'back'"""
+  attribute: String!
+
+  """The URL of the cover image"""
+  url: String!
+}
+
+type Series {
+  id: ID!
+  name: String!
+  ruby: String
+  dmmId: Int
+}
+
+type Maker {
+  id: ID!
+  dmmId: Int!
+  name: String!
+  ruby: String
   videos: [Video!]
 }
 
@@ -70,6 +80,9 @@ type Video {
   genres: [Genre!]
   series: Series
   maker: Maker
+
+  """List of cover images of the video"""
+  covers: [VideoCover!]
 }
 
 type Actress {

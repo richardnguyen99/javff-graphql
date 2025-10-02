@@ -7,13 +7,16 @@ import {
   JoinTable,
   Index,
   JoinColumn,
+  OneToMany,
 } from "typeorm";
 import { Field, ID, ObjectType } from "@nestjs/graphql";
+
+import { Genre } from "src/v1/video/genre.entity";
+import { VideoCover } from "src/v1/video/video-cover.entity";
 
 import { Actress } from "src/v1/actress/actress.entity";
 import { Series } from "src/v1/series/series.entity";
 import { Maker } from "src/v1/maker/maker.entity";
-import { Genre } from "src/v1/video/genre.entity";
 
 @ObjectType()
 @Entity()
@@ -64,7 +67,7 @@ export class Video {
   @Field(() => [Actress], { nullable: true })
   @ManyToMany(() => Actress, (actress) => actress.videos, { cascade: true })
   @JoinTable({
-    name: "video_actresses", // Junction table name
+    name: "video_actresses",
     joinColumn: { name: "video_id", referencedColumnName: "id" },
     inverseJoinColumn: { name: "actress_id", referencedColumnName: "id" },
   })
@@ -88,4 +91,11 @@ export class Video {
   @ManyToOne(() => Maker, (maker) => maker.videos, { nullable: true })
   @JoinColumn({ name: "maker_id" })
   maker?: Maker;
+
+  @Field(() => [VideoCover], {
+    nullable: true,
+    description: "List of cover images of the video",
+  })
+  @OneToMany(() => VideoCover, (cover) => cover.video, { cascade: true })
+  covers?: VideoCover[];
 }
