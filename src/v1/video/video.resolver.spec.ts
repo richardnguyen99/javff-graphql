@@ -1,11 +1,14 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
 
 import { VideoResolver } from "src/v1/video/video.resolver";
 import { VideoService } from "src/v1/video/video.service";
 import { Video } from "src/v1/video/video.entity";
+import { VideoCover } from "src/v1/video/video-cover.entity";
 
 import { VideoConnection } from "src/v1/video/dto/video-connection.output";
 import { VideoQueryOptionsInput } from "src/v1/video/dto/video-query-options.input";
+import { Repository } from "typeorm";
 
 describe("VideoResolver", () => {
   let resolver: VideoResolver;
@@ -15,6 +18,10 @@ describe("VideoResolver", () => {
     findAllConnection: jest.fn(),
   };
 
+  const mockVideoCoverRepository = {
+    find: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -22,6 +29,10 @@ describe("VideoResolver", () => {
         {
           provide: VideoService,
           useValue: mockVideoService,
+        },
+        {
+          provide: getRepositoryToken(VideoCover),
+          useValue: mockVideoCoverRepository,
         },
       ],
     }).compile();
@@ -720,6 +731,29 @@ describe("VideoResolver", () => {
 
       expect(service.findAllConnection).toHaveBeenCalledWith(options);
       expect(result).toEqual(mockConnection);
+    });
+  });
+
+  describe("coversMap field resolver", () => {
+    it("should return a key-value map of covers", async () => {
+      const video = { id: 1 } as Video;
+      const covers = [
+        { attribute: "list", url: "list_url" },
+        { attribute: "small", url: "small_url" },
+        { attribute: "large", url: "large_url" },
+      ] as VideoCover[];
+      mockVideoCoverRepository.find.mockResolvedValue(covers);
+
+      const result = await resolver.covers(video);
+
+      expect(mockVideoCoverRepository.find).toHaveBeenCalledWith({
+        where: { video: { id: video.id } },
+      });
+      expect(result).toEqual([
+        { attribute: "list", url: "list_url" },
+        { attribute: "small", url: "small_url" },
+        { attribute: "large", url: "large_url" },
+      ]);
     });
   });
 });
