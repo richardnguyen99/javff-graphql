@@ -28,16 +28,6 @@ type Genre {
   videos: [Video!]
 }
 
-type VideoCover {
-  id: ID!
-
-  """The attribute of the cover image, e.g., 'front', 'back'"""
-  attribute: String!
-
-  """The URL of the cover image"""
-  url: String!
-}
-
 type Series {
   id: ID!
   name: String!
@@ -51,20 +41,6 @@ type Maker {
   name: String!
   ruby: String
   videos: [Video!]
-}
-
-type VideoSampleImage {
-  id: ID!
-
-  """The attribute of the sample image, e.g., 'sample_s'"""
-  attribute: String!
-
-  """Ordering of the sample image"""
-  ordering: Int!
-
-  """The URL of the sample image"""
-  url: String!
-  video: Video!
 }
 
 type Video {
@@ -94,12 +70,8 @@ type Video {
   genres: [Genre!]
   series: Series
   maker: Maker
-
-  """List of cover images of the video"""
-  covers: [VideoCover!]
-
-  """List of sample images of the video"""
-  sampleImages: [VideoSampleImage!]
+  covers: VideoCoverDimensions
+  sampleImages: VideoSampleImageDimensions
 }
 
 type Actress {
@@ -295,6 +267,17 @@ type VideoConnection {
   edges: [VideoEdge!]!
   pageInfo: VideoPageInfo!
   totalCount: Int!
+}
+
+type VideoCoverDimensions {
+  list: String
+  small: String
+  large: String
+}
+
+type VideoSampleImageDimensions {
+  sample_s: [String!]
+  sample_l: [String!]
 }
 
 """DateTime custom scalar type to work with ISO 8601 date strings"""

@@ -18,6 +18,7 @@ import { Actress } from "src/v1/actress/actress.entity";
 import { Series } from "src/v1/series/series.entity";
 import { Maker } from "src/v1/maker/maker.entity";
 import { VideoSampleImage } from "src/v1/video/video-sample-image.entity";
+import { VideoSampleVideo } from "src/v1/video/video-sample-video.entity";
 
 @ObjectType()
 @Entity()
@@ -93,19 +94,16 @@ export class Video {
   @JoinColumn({ name: "maker_id" })
   maker?: Maker;
 
-  @Field(() => [VideoCover], {
-    nullable: true,
-    description: "List of cover images of the video",
-  })
   @OneToMany(() => VideoCover, (cover) => cover.video, { cascade: true })
   covers?: VideoCover[];
 
-  @Field(() => [VideoSampleImage], {
-    nullable: true,
-    description: "List of sample images of the video",
-  })
   @OneToMany(() => VideoSampleImage, (sampleImage) => sampleImage.video, {
     cascade: true,
   })
   sampleImages?: VideoSampleImage[];
+
+  @OneToMany(() => VideoSampleVideo, (sampleVideo) => sampleVideo.video, {
+    cascade: true,
+  })
+  sampleVideos?: VideoSampleVideo[];
 }

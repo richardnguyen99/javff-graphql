@@ -11,6 +11,7 @@ import { Series } from "src/v1/series/series.entity";
 import { Maker } from "src/v1/maker/maker.entity";
 import { VideoCover } from "src/v1/video/video-cover.entity";
 import { VideoSampleImage } from "src/v1/video/video-sample-image.entity";
+import { VideoSampleVideo } from "src/v1/video/video-sample-video.entity";
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { VideoSampleImage } from "src/v1/video/video-sample-image.entity";
       Genre,
       VideoCover,
       VideoSampleImage,
+      VideoSampleVideo,
     ]),
   ],
   providers: [VideoResolver, VideoService],
