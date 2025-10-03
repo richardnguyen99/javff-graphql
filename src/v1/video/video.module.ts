@@ -10,6 +10,7 @@ import { Actress } from "src/v1/actress/actress.entity";
 import { Series } from "src/v1/series/series.entity";
 import { Maker } from "src/v1/maker/maker.entity";
 import { VideoCover } from "src/v1/video/video-cover.entity";
+import { VideoSampleImage } from "src/v1/video/video-sample-image.entity";
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { VideoCover } from "src/v1/video/video-cover.entity";
       Maker,
       Genre,
       VideoCover,
+      VideoSampleImage,
     ]),
   ],
   providers: [VideoResolver, VideoService],

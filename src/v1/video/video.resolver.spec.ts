@@ -7,6 +7,7 @@ import { Video } from "src/v1/video/video.entity";
 import { VideoCover } from "src/v1/video/video-cover.entity";
 import { VideoConnection } from "src/v1/video/dto/video-connection.output";
 import { VideoQueryOptionsInput } from "src/v1/video/dto/video-query-options.input";
+import { VideoSampleImage } from "./video-sample-image.entity";
 
 describe("VideoResolver", () => {
   let resolver: VideoResolver;
@@ -17,6 +18,10 @@ describe("VideoResolver", () => {
   };
 
   const mockVideoCoverRepository = {
+    find: jest.fn(),
+  };
+
+  const mockVideoSampleImageRepository = {
     find: jest.fn(),
   };
 
@@ -31,6 +36,10 @@ describe("VideoResolver", () => {
         {
           provide: getRepositoryToken(VideoCover),
           useValue: mockVideoCoverRepository,
+        },
+        {
+          provide: getRepositoryToken(VideoSampleImage),
+          useValue: mockVideoSampleImageRepository,
         },
       ],
     }).compile();

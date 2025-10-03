@@ -53,6 +53,20 @@ type Maker {
   videos: [Video!]
 }
 
+type VideoSampleImage {
+  id: ID!
+
+  """The attribute of the sample image, e.g., 'sample_s'"""
+  attribute: String!
+
+  """Ordering of the sample image"""
+  ordering: Int!
+
+  """The URL of the sample image"""
+  url: String!
+  video: Video!
+}
+
 type Video {
   id: ID!
 
@@ -83,6 +97,9 @@ type Video {
 
   """List of cover images of the video"""
   covers: [VideoCover!]
+
+  """List of sample images of the video"""
+  sampleImages: [VideoSampleImage!]
 }
 
 type Actress {
