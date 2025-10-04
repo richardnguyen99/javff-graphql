@@ -10,8 +10,7 @@ COPY video_cover_tmp (video_id, attribute, url)
 FROM '/tmp/video-cover.tsv'  -- should be copied to container first
 DELIMITER E'\t' CSV HEADER;
 
--- insert the data from the temporary table into the actual table, ignoring
--- duplicates based on dmm_id
+-- insert the data from the temporary table into the actual table
 INSERT INTO video_cover (video_id, attribute, url)
 SELECT video_id, attribute, url
 FROM video_cover_tmp

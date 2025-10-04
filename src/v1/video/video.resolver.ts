@@ -7,18 +7,29 @@ import { VideoService } from "src/v1/video/video.service";
 import { VideoConnection } from "src/v1/video/dto/video-connection.output";
 import { VideoQueryOptionsInput } from "src/v1/video/dto/video-query-options.input";
 import { VideoCover } from "src/v1/video/video-cover.entity";
-import { VideoSampleImage } from "./video-sample-image.entity";
-import { VideoCoverDimensions } from "./dto/video-cover.output";
-import { VideoSampleImageDimensions } from "./dto/video-sample-image.output";
+import { VideoSampleImage } from "src/v1/video/video-sample-image.entity";
+import { VideoCoverDimensions } from "src/v1/video/dto/video-cover.output";
+import { VideoSampleImageDimensions } from "src/v1/video/dto/video-sample-image.output";
+import { VideoSampleVideoDimensions } from "src/v1/video/dto/video-sample-video.output";
+import { VideoSampleVideo } from "src/v1/video/video-sample-video.entity";
 
 @Resolver(() => Video)
 export class VideoResolver {
+  private static readonly SAMPLE_VIDEO_MAP = {
+    size_476_306: "list",
+    size_560_360: "small",
+    size_644_414: "medium",
+    size_720_480: "large",
+  };
+
   constructor(
     private readonly videoService: VideoService,
     @InjectRepository(VideoCover)
     private readonly videoCoverRepository: Repository<VideoCover>,
     @InjectRepository(VideoSampleImage)
-    private readonly videoSampleImageRepository: Repository<VideoSampleImage>
+    private readonly videoSampleImageRepository: Repository<VideoSampleImage>,
+    @InjectRepository(VideoSampleVideo)
+    private readonly videoSampleVideoRepository: Repository<VideoSampleVideo>
   ) {}
 
   @Query(() => VideoConnection, {
@@ -66,6 +77,27 @@ export class VideoResolver {
     for (const image of images) {
       const attribute = image.attribute.replace("_dvd", "");
       dimensions[attribute] = image.urls;
+    }
+
+    return dimensions;
+  }
+
+  @ResolveField(() => VideoSampleVideoDimensions, { nullable: true })
+  async sampleVideos(
+    @Parent() video: Video
+  ): Promise<VideoSampleVideoDimensions> {
+    const qb = this.videoSampleVideoRepository
+      .createQueryBuilder("sampleVideo")
+      .select(["sampleVideo.attribute as attribute", "sampleVideo.url as url"])
+      .where("sampleVideo.video_id = :videoId", { videoId: video.id });
+
+    const sampleVideos = await qb.getRawMany();
+    const dimensions: VideoSampleVideoDimensions = {};
+
+    for (const sampleVideo of sampleVideos) {
+      const attribute = VideoResolver.SAMPLE_VIDEO_MAP[sampleVideo.attribute];
+      dimensions[attribute] = sampleVideo.url;
+      console.log(attribute, sampleVideo.url);
     }
 
     return dimensions;

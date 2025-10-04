@@ -72,6 +72,7 @@ type Video {
   maker: Maker
   covers: VideoCoverDimensions
   sampleImages: VideoSampleImageDimensions
+  sampleVideos: VideoSampleVideoDimensions
 }
 
 type Actress {
@@ -278,6 +279,13 @@ type VideoCoverDimensions {
 type VideoSampleImageDimensions {
   sample_s: [String!]
   sample_l: [String!]
+}
+
+type VideoSampleVideoDimensions {
+  size476x306: String
+  size560x360: String
+  size644x414: String
+  size720x480: String
 }
 
 """DateTime custom scalar type to work with ISO 8601 date strings"""
