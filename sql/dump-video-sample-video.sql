@@ -1,0 +1,9 @@
+BEGIN;
+
+COPY (
+  SELECT * FROM video_sample_video ORDER BY video_id
+) TO STDOUT WITH CSV HEADER
+DELIMITER E'\t';
+
+COMMIT;
+
