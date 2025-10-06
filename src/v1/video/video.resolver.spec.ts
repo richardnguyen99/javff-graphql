@@ -19,7 +19,6 @@ describe("VideoResolver", () => {
   };
 
   const mockVideoCoverRepository = {
-    find: jest.fn(),
     createQueryBuilder: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
@@ -28,11 +27,19 @@ describe("VideoResolver", () => {
   };
 
   const mockVideoSampleImageRepository = {
-    find: jest.fn(),
+    createQueryBuilder: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    groupBy: jest.fn().mockReturnThis(),
+    getRawMany: jest.fn(),
   };
 
   const mockVideoSampleVideoRepository = {
-    find: jest.fn(),
+    createQueryBuilder: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    groupBy: jest.fn().mockReturnThis(),
+    getRawMany: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -755,42 +762,100 @@ describe("VideoResolver", () => {
     });
   });
 
-  describe("coversMap field resolver", () => {
-    it("should return a key-value map of covers", async () => {
-      const video = { id: 1 } as Video;
-      const covers = [
-        { attribute: "list", url: "list_url" },
-        { attribute: "small", url: "small_url" },
-        { attribute: "large", url: "large_url" },
-      ] as VideoCover[];
+  it("should return a key-value map of covers", async () => {
+    const video = { id: 1 } as Video;
+    const covers = [
+      { attribute: "list", url: "list_url" },
+      { attribute: "small", url: "small_url" },
+      { attribute: "large", url: "large_url" },
+    ] as VideoCover[];
 
-      mockVideoCoverRepository.getMany.mockResolvedValue(covers);
+    mockVideoCoverRepository.getMany.mockResolvedValue(covers);
 
-      const result = await resolver.covers(video);
+    const result = await resolver.covers(video);
 
-      expect(mockVideoCoverRepository.createQueryBuilder).toHaveBeenCalledWith(
-        "cover"
-      );
-      expect(mockVideoCoverRepository.select).toHaveBeenCalledWith([
-        "cover.attribute",
-        "cover.id",
-        "cover.url",
-      ]);
-      expect(mockVideoCoverRepository.where).toHaveBeenCalledWith(
-        "cover.video_id = :videoId",
-        { videoId: video.id }
-      );
-      expect(mockVideoCoverRepository.groupBy).toHaveBeenCalledWith(
-        "cover.attribute, cover.id"
-      );
+    expect(mockVideoCoverRepository.createQueryBuilder).toHaveBeenCalledWith(
+      "cover"
+    );
+    expect(mockVideoCoverRepository.select).toHaveBeenCalledWith([
+      "cover.attribute",
+      "cover.id",
+      "cover.url",
+    ]);
+    expect(mockVideoCoverRepository.where).toHaveBeenCalledWith(
+      "cover.video_id = :videoId",
+      { videoId: video.id }
+    );
+    expect(mockVideoCoverRepository.groupBy).toHaveBeenCalledWith(
+      "cover.attribute, cover.id"
+    );
 
-      expect(result).toEqual(
-        expect.objectContaining({
-          list: "list_url",
-          small: "small_url",
-          large: "large_url",
-        })
-      );
-    });
+    expect(result).toEqual(
+      expect.objectContaining({
+        list: "list_url",
+        small: "small_url",
+        large: "large_url",
+      })
+    );
+  });
+
+  it("should return a key-value map of sample images", async () => {
+    const video = { id: 1 } as Video;
+    const sampleImages = [
+      { attribute: "sample_s", urls: ["url1", "url2"] },
+      { attribute: "sample_l", urls: ["url3", "url4"] },
+    ];
+
+    mockVideoSampleImageRepository.getRawMany.mockResolvedValue(sampleImages);
+
+    const result = await resolver.sampleImages(video);
+
+    expect(
+      mockVideoSampleImageRepository.createQueryBuilder
+    ).toHaveBeenCalledWith("image");
+    expect(mockVideoSampleImageRepository.select).toHaveBeenCalledWith([
+      "image.attribute as attribute",
+      "array_agg(image.url) as urls",
+    ]);
+    expect(mockVideoSampleImageRepository.where).toHaveBeenCalledWith(
+      "image.video_id = :videoId",
+      { videoId: video.id }
+    );
+    expect(mockVideoSampleImageRepository.groupBy).toHaveBeenCalledWith(
+      "image.attribute"
+    );
+
+    expect(result).toEqual(expect.objectContaining({}));
+  });
+
+  it("should return a key-value map of sample videos", async () => {
+    const video = { id: 1 } as Video;
+    const sampleVideos = [
+      { attribute: "size_476_306", url: "mv_url" },
+      { attribute: "size_560_360", url: "pv_url" },
+    ];
+
+    mockVideoSampleVideoRepository.getRawMany.mockResolvedValue(sampleVideos);
+
+    const result = await resolver.sampleVideos(video);
+
+    expect(
+      mockVideoSampleVideoRepository.createQueryBuilder
+    ).toHaveBeenCalledWith("sampleVideo");
+    expect(mockVideoSampleVideoRepository.select).toHaveBeenCalledWith([
+      "sampleVideo.attribute as attribute",
+      "sampleVideo.url as url",
+    ]);
+    expect(mockVideoSampleVideoRepository.where).toHaveBeenCalledWith(
+      "sampleVideo.video_id = :videoId",
+      { videoId: video.id }
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        list: "mv_url",
+        small: "pv_url",
+      })
+    );
   });
 });
