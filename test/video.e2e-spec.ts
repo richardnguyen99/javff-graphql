@@ -265,6 +265,37 @@ describe("Video Module (e2e)", () => {
           url: `http://example.com/samples/${videos[3].id}jp_2.jpg`,
         },
       ]);
+
+      await dataSource.getRepository(VideoSampleVideo).save([
+        {
+          video: {
+            id: videos[2].id,
+          },
+          attribute: "size_476_306",
+          url: `http://example.com/sample-videos/${videos[2].id}_476_306.mp4`,
+        },
+        {
+          video: {
+            id: videos[2].id,
+          },
+          attribute: "size_560_360",
+          url: `http://example.com/sample-videos/${videos[2].id}_560_360.mp4`,
+        },
+        {
+          video: {
+            id: videos[2].id,
+          },
+          attribute: "size_644_414",
+          url: `http://example.com/sample-videos/${videos[2].id}_644_414.mp4`,
+        },
+        {
+          video: {
+            id: videos[2].id,
+          },
+          attribute: "size_720_480",
+          url: `http://example.com/sample-videos/${videos[2].id}_720_480.mp4`,
+        },
+      ]);
     });
 
     it("should fetch all videos with relations", async () => {
@@ -1209,6 +1240,63 @@ describe("Video Module (e2e)", () => {
               /^http:\/\/example\.com\/samples\/\d+jp_2.jpg$/
             ),
           ],
+        },
+      });
+    });
+
+    it("should return a map of video sample videos", async () => {
+      const query = `#graphql
+        query VideoCovers {
+          videos(options: { first: 3 }) {
+            edges {
+              node {
+                id
+                title
+
+                sampleVideos {
+                  size476x306
+                  size560x360
+                  size644x414
+                  size720x480
+                }
+              }
+            }
+          }
+        }
+       `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+
+      expect(nodes[0]).toMatchObject({
+        title: "First Video",
+        sampleVideos: {
+          size476x306: null,
+          size560x360: null,
+          size644x414: null,
+          size720x480: null,
+        },
+      });
+
+      expect(nodes[2]).toMatchObject({
+        title: "S1 Sample Video",
+        sampleVideos: {
+          size476x306: expect.stringMatching(
+            /^http:\/\/example\.com\/sample-videos\/\d+_476_306\.mp4$/
+          ),
+          size560x360: expect.stringMatching(
+            /^http:\/\/example\.com\/sample-videos\/\d+_560_360\.mp4$/
+          ),
+          size644x414: expect.stringMatching(
+            /^http:\/\/example\.com\/sample-videos\/\d+_644_414\.mp4$/
+          ),
+          size720x480: expect.stringMatching(
+            /^http:\/\/example\.com\/sample-videos\/\d+_720_480\.mp4$/
+          ),
         },
       });
     });
