@@ -97,7 +97,6 @@ export class VideoResolver {
     for (const sampleVideo of sampleVideos) {
       const attribute = VideoResolver.SAMPLE_VIDEO_MAP[sampleVideo.attribute];
       dimensions[attribute] = sampleVideo.url;
-      console.log(attribute, sampleVideo.url);
     }
 
     return dimensions;

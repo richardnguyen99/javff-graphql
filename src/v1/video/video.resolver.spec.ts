@@ -8,6 +8,7 @@ import { VideoCover } from "src/v1/video/video-cover.entity";
 import { VideoConnection } from "src/v1/video/dto/video-connection.output";
 import { VideoQueryOptionsInput } from "src/v1/video/dto/video-query-options.input";
 import { VideoSampleImage } from "./video-sample-image.entity";
+import { VideoSampleVideo } from "./video-sample-video.entity";
 
 describe("VideoResolver", () => {
   let resolver: VideoResolver;
@@ -19,9 +20,18 @@ describe("VideoResolver", () => {
 
   const mockVideoCoverRepository = {
     find: jest.fn(),
+    createQueryBuilder: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    groupBy: jest.fn().mockReturnThis(),
+    getMany: jest.fn(),
   };
 
   const mockVideoSampleImageRepository = {
+    find: jest.fn(),
+  };
+
+  const mockVideoSampleVideoRepository = {
     find: jest.fn(),
   };
 
@@ -40,6 +50,10 @@ describe("VideoResolver", () => {
         {
           provide: getRepositoryToken(VideoSampleImage),
           useValue: mockVideoSampleImageRepository,
+        },
+        {
+          provide: getRepositoryToken(VideoSampleVideo),
+          useValue: mockVideoSampleVideoRepository,
         },
       ],
     }).compile();
@@ -749,18 +763,34 @@ describe("VideoResolver", () => {
         { attribute: "small", url: "small_url" },
         { attribute: "large", url: "large_url" },
       ] as VideoCover[];
-      mockVideoCoverRepository.find.mockResolvedValue(covers);
+
+      mockVideoCoverRepository.getMany.mockResolvedValue(covers);
 
       const result = await resolver.covers(video);
 
-      expect(mockVideoCoverRepository.find).toHaveBeenCalledWith({
-        where: { video: { id: video.id } },
-      });
-      expect(result).toEqual([
-        { attribute: "list", url: "list_url" },
-        { attribute: "small", url: "small_url" },
-        { attribute: "large", url: "large_url" },
+      expect(mockVideoCoverRepository.createQueryBuilder).toHaveBeenCalledWith(
+        "cover"
+      );
+      expect(mockVideoCoverRepository.select).toHaveBeenCalledWith([
+        "cover.attribute",
+        "cover.id",
+        "cover.url",
       ]);
+      expect(mockVideoCoverRepository.where).toHaveBeenCalledWith(
+        "cover.video_id = :videoId",
+        { videoId: video.id }
+      );
+      expect(mockVideoCoverRepository.groupBy).toHaveBeenCalledWith(
+        "cover.attribute, cover.id"
+      );
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          list: "list_url",
+          small: "small_url",
+          large: "large_url",
+        })
+      );
     });
   });
 });
