@@ -214,6 +214,57 @@ describe("Video Module (e2e)", () => {
           url: `http://example.com/covers/${videos[2].id}_large.jpg`,
         },
       ]);
+
+      await dataSource.getRepository(VideoSampleImage).save([
+        {
+          video: {
+            id: videos[2].id,
+          },
+          attribute: "sample_s",
+          ordering: 1,
+          url: `http://example.com/samples/${videos[2].id}_1.jpg`,
+        },
+        {
+          video: {
+            id: videos[2].id,
+          },
+          attribute: "sample_s",
+          ordering: 2,
+          url: `http://example.com/samples/${videos[2].id}_2.jpg`,
+        },
+        {
+          video: {
+            id: videos[3].id,
+          },
+          attribute: "sample_s",
+          ordering: 1,
+          url: `http://example.com/samples/${videos[3].id}_1.jpg`,
+        },
+        {
+          video: {
+            id: videos[3].id,
+          },
+          attribute: "sample_s",
+          ordering: 2,
+          url: `http://example.com/samples/${videos[3].id}_2.jpg`,
+        },
+        {
+          video: {
+            id: videos[3].id,
+          },
+          attribute: "sample_l",
+          ordering: 1,
+          url: `http://example.com/samples/${videos[3].id}jp_1.jpg`,
+        },
+        {
+          video: {
+            id: videos[3].id,
+          },
+          ordering: 2,
+          attribute: "sample_l",
+          url: `http://example.com/samples/${videos[3].id}jp_2.jpg`,
+        },
+      ]);
     });
 
     it("should fetch all videos with relations", async () => {
@@ -1087,6 +1138,77 @@ describe("Video Module (e2e)", () => {
           large: expect.stringMatching(
             /^http:\/\/example\.com\/covers\/\d+_large\.jpg$/
           ),
+        },
+      });
+    });
+
+    it("should return a map of video sample images", async () => {
+      const query = `#graphql
+        query VideoCovers {
+          videos(options: { first: 4 }) {
+            edges {
+              node {
+                id
+                title
+                sampleImages {
+                  sample_s
+                  sample_l
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+
+      expect(nodes[0]).toMatchObject({
+        title: "First Video",
+        sampleImages: {
+          sample_s: null,
+          sample_l: null,
+        },
+      });
+
+      expect(nodes[2]).toMatchObject({
+        title: "S1 Sample Video",
+        sampleImages: {
+          sample_s: expect.arrayContaining([
+            expect.stringMatching(
+              /^http:\/\/example\.com\/samples\/\d+_1\.jpg$/
+            ),
+            expect.stringMatching(
+              /^http:\/\/example\.com\/samples\/\d+_2.jpg$/
+            ),
+          ]),
+          sample_l: null,
+        },
+      });
+
+      expect(nodes[3]).toMatchObject({
+        title: "Moodyz Sample Video",
+        sampleImages: {
+          sample_s: expect.arrayContaining([
+            expect.stringMatching(
+              /^http:\/\/example\.com\/samples\/\d+_1\.jpg$/
+            ),
+            expect.stringMatching(
+              /^http:\/\/example\.com\/samples\/\d+_2.jpg$/
+            ),
+          ]),
+          sample_l: [
+            expect.stringMatching(
+              /^http:\/\/example\.com\/samples\/\d+jp_1\.jpg$/
+            ),
+            expect.stringMatching(
+              /^http:\/\/example\.com\/samples\/\d+jp_2.jpg$/
+            ),
+          ],
         },
       });
     });
