@@ -8,6 +8,9 @@ import { Actress } from "src/v1/actress/actress.entity";
 import { Series } from "src/v1/series/series.entity";
 import { Maker } from "src/v1/maker/maker.entity";
 import { Genre } from "src/v1/video/genre.entity";
+import { VideoSampleVideo } from "src/v1/video/video-sample-video.entity";
+import { VideoCover } from "src/v1/video/video-cover.entity";
+import { VideoSampleImage } from "src/v1/video/video-sample-image.entity";
 
 describe("Video Module (e2e)", () => {
   let app: INestApplication;
@@ -57,6 +60,21 @@ describe("Video Module (e2e)", () => {
       .execute();
     await dataSource
       .getRepository(Genre)
+      .createQueryBuilder()
+      .delete()
+      .execute();
+    await dataSource
+      .getRepository(VideoCover)
+      .createQueryBuilder()
+      .delete()
+      .execute();
+    await dataSource
+      .getRepository(VideoSampleImage)
+      .createQueryBuilder()
+      .delete()
+      .execute();
+    await dataSource
+      .getRepository(VideoSampleVideo)
       .createQueryBuilder()
       .delete()
       .execute();
@@ -120,7 +138,7 @@ describe("Video Module (e2e)", () => {
         displayName: "Claire Hasumi",
       });
 
-      await dataSource.getRepository(Video).save([
+      const videos = await dataSource.getRepository(Video).save([
         {
           code: "V001",
           title: "First Video",
@@ -170,6 +188,30 @@ describe("Video Module (e2e)", () => {
           genres: [genre1, genre2],
           releaseDate: "2024-01-01",
           length: 200,
+        },
+      ]);
+
+      await dataSource.getRepository(VideoCover).save([
+        {
+          video: {
+            id: videos[2].id,
+          },
+          attribute: "list",
+          url: `http://example.com/covers/${videos[2].id}_list.jpg`,
+        },
+        {
+          video: {
+            id: videos[2].id,
+          },
+          attribute: "small",
+          url: `http://example.com/covers/${videos[2].id}_small.jpg`,
+        },
+        {
+          video: {
+            id: videos[2].id,
+          },
+          attribute: "large",
+          url: `http://example.com/covers/${videos[2].id}_large.jpg`,
         },
       ]);
     });
@@ -990,6 +1032,63 @@ describe("Video Module (e2e)", () => {
 
       expect(response.body.data.videos.totalCount).toBe(0);
       expect(response.body.data.videos.edges).toHaveLength(0);
+    });
+
+    it("should return a map of video covers", async () => {
+      const query = `#graphql
+        query VideoCovers {
+          videos(options: { first: 3 }) {
+            edges {
+              node {
+                id
+                title
+                covers {
+                  list
+                  small
+                  large
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post("/graphql")
+        .send({ query })
+        .expect(200);
+
+      const nodes = response.body.data.videos.edges.map((e) => e.node);
+      expect(nodes[0]).toMatchObject({
+        title: "First Video",
+        covers: {
+          list: null,
+          small: null,
+          large: null,
+        },
+      });
+      expect(nodes[1]).toMatchObject({
+        title: "Second Video",
+        covers: {
+          list: null,
+          small: null,
+          large: null,
+        },
+      });
+      expect(nodes[2]).toMatchObject({
+        title: "S1 Sample Video",
+        covers: {
+          list: expect.stringMatching(
+            /^http:\/\/example\.com\/covers\/\d+_list\.jpg$/
+          ),
+          small: expect.stringMatching(
+            /^http:\/\/example\.com\/covers\/\d+_small\.jpg$/
+          ),
+          large: expect.stringMatching(
+            /^http:\/\/example\.com\/covers\/\d+_large\.jpg$/
+          ),
+        },
+      });
     });
   });
 });
