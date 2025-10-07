@@ -5,6 +5,11 @@ import { Repository } from "typeorm";
 import { Video } from "src/v1/video/video.entity";
 import { VideoConnection } from "src/v1/video/dto/video-connection.output";
 import { VideoQueryOptionsInput } from "src/v1/video/dto/video-query-options.input";
+import { CreateVideoInput } from "./dto/create-video.input";
+import { Actress } from "src/v1/actress/actress.entity";
+import { Genre } from "src/v1/video/genre.entity";
+import { Series } from "src/v1/series/series.entity";
+import { Maker } from "src/v1/maker/maker.entity";
 
 @Injectable()
 export class VideoService {
@@ -33,10 +38,7 @@ export class VideoService {
         .select("v.id")
         .innerJoin("v.actresses", "va")
         .where("va.id IN (:...actressIds)", { actressIds: options.actressIds })
-        .groupBy("v.id")
-        .having("COUNT(DISTINCT va.id) = :actressCount", {
-          actressCount: options.actressIds.length,
-        });
+        .groupBy("v.id");
 
       qb.andWhere(`video.id IN (${actressSubquery.getQuery()})`).setParameters(
         actressSubquery.getParameters()
@@ -154,5 +156,32 @@ export class VideoService {
       pageInfo,
       totalCount,
     };
+  }
+
+  async createVideo(input: CreateVideoInput): Promise<Video> {
+    const video = this.videoRepository.create({
+      code: input.code,
+      dmmId: input.dmmId,
+      title: input.title,
+      description: input.description,
+      label: input.label,
+      releaseDate: input.releaseDate,
+      length: input.length,
+    });
+
+    if (input.actressIds) {
+      video.actresses = input.actressIds.map((id) => ({ id }) as Actress);
+    }
+    if (input.genreIds) {
+      video.genres = input.genreIds.map((id) => ({ id }) as Genre);
+    }
+    if (input.seriesId) {
+      video.series = { id: input.seriesId } as Series;
+    }
+    if (input.makerId) {
+      video.maker = { id: input.makerId } as Maker;
+    }
+
+    return this.videoRepository.save(video);
   }
 }

@@ -1,17 +1,27 @@
-import { Resolver, Query, Args, ResolveField, Parent } from "@nestjs/graphql";
+import {
+  Resolver,
+  Query,
+  Args,
+  ResolveField,
+  Parent,
+  Mutation,
+} from "@nestjs/graphql";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
-import { Video } from "src/v1/video/video.entity";
 import { VideoService } from "src/v1/video/video.service";
-import { VideoConnection } from "src/v1/video/dto/video-connection.output";
-import { VideoQueryOptionsInput } from "src/v1/video/dto/video-query-options.input";
+
+import { Video } from "src/v1/video/video.entity";
 import { VideoCover } from "src/v1/video/video-cover.entity";
 import { VideoSampleImage } from "src/v1/video/video-sample-image.entity";
+import { VideoSampleVideo } from "src/v1/video/video-sample-video.entity";
+
+import { VideoConnection } from "src/v1/video/dto/video-connection.output";
+import { VideoQueryOptionsInput } from "src/v1/video/dto/video-query-options.input";
 import { VideoCoverDimensions } from "src/v1/video/dto/video-cover.output";
 import { VideoSampleImageDimensions } from "src/v1/video/dto/video-sample-image.output";
 import { VideoSampleVideoDimensions } from "src/v1/video/dto/video-sample-video.output";
-import { VideoSampleVideo } from "src/v1/video/video-sample-video.entity";
+import { CreateVideoInput } from "src/v1/video/dto/create-video.input";
 
 @Resolver(() => Video)
 export class VideoResolver {
@@ -40,6 +50,13 @@ export class VideoResolver {
     options?: VideoQueryOptionsInput
   ): Promise<VideoConnection> {
     return this.videoService.findAllConnection(options);
+  }
+
+  @Mutation(() => Video, {
+    description: "Create a new video entry.",
+  })
+  async createVideo(@Args("input") input: CreateVideoInput): Promise<Video> {
+    return this.videoService.createVideo(input);
   }
 
   @ResolveField(() => VideoCoverDimensions, { nullable: true })

@@ -409,6 +409,9 @@ type Mutation {
   Delete an actress record by ID and return the deleted actress and images.
   """
   deleteActress(id: Int!): DeleteActressOutput!
+
+  """Create a new video entry."""
+  createVideo(input: CreateVideoInput!): Video!
   createSeries(name: String!): Series!
   createMaker(name: String!): Maker!
 }
@@ -540,4 +543,39 @@ input RemoveActressImageInput {
 
   """ID of the image"""
   id: ID!
+}
+
+input CreateVideoInput {
+  """The unique code of the video"""
+  code: String!
+
+  """DMM ID (unique identifier, optional)"""
+  dmmId: String
+
+  """The title of the video"""
+  title: String!
+
+  """The description of the video"""
+  description: String
+
+  """The label that the video belongs to"""
+  label: String
+
+  """The release date of the video in ISO 8601"""
+  releaseDate: DateTime
+
+  """The length of the video in minutes"""
+  length: Int
+
+  """IDs of actresses in the video"""
+  actressIds: [Int!]
+
+  """IDs of genres for the video"""
+  genreIds: [Int!]
+
+  """ID of the series the video belongs to"""
+  seriesId: Int
+
+  """ID of the maker of the video"""
+  makerId: Int
 }
